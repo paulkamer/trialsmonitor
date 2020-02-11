@@ -1,0 +1,17 @@
+{
+  "extends": "@serverless/eslint-config/node",
+  "root": true,
+
+  "parserOptions": {
+    "ecmaVersion": 10,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "globalReturn": true,
+      "experimentalObjectRestSpread": true
+    }
+  },
+  "rules": {
+    "semi": "error",
+    "no-console": "off"
+  }
+}

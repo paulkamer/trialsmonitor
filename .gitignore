@@ -1,0 +1,11 @@
+# package directories
+node_modules
+jspm_packages
+
+# Serverless directories
+.serverless
+
+*.code-workspace
+.dynamodb
+secrets.json
+.eslintcache

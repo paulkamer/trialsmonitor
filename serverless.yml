@@ -1,0 +1,155 @@
+service: trialmonitor
+app: trialmonitor-app
+org: paulkamer
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: eu-central-1
+  stage: ${opt:stage,'dev'}
+  iamManagedPolicies:
+    - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:ListStreams
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:BatchGetItem
+      Resource: "arn:aws:dynamodb:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:table/*"
+    - Effect: Allow
+      Action:
+        - ses:SendEmail
+      Resource: "arn:aws:ses:eu-central-1:${self:custom.secrets.ACCOUNT_ID}:identity/*"
+
+  environment:
+    STAGE: ${self:provider.stage}
+    DYNAMODB_REGION: ${self:custom.dynamodb.region.${self:provider.stage}}
+    DYNAMODB_API_VERSION: '2012-08-10'
+    DYNAMODB_DEV_ENDPOINT: ${self:custom.dynamodb.dev_endpoint}
+    TRIALS_TABLE: "trials_${self:provider.stage}"
+    EMAIL_FROM_ADDRESS: ${self:custom.secrets.EMAIL_FROM_ADDRESS}
+    EMAIL_TO_ADDRESS: ${self:custom.secrets.EMAIL_TO_ADDRESS}
+
+plugins:
+  - serverless-offline
+  - serverless-step-functions
+  - serverless-step-functions-offline
+  - serverless-dynamodb-local
+
+package:
+ exclude:
+    - .dynamodb/**
+    - yarn.lock
+    - package.json
+    - README.md
+    - '*.code-workspace'
+    - .eslintcache
+    - prettier.config.js
+
+functions:
+  outdatedTrialsChecker:
+    handler: functions/outdatedTrialsChecker.handle
+
+  trialUpdater:
+    handler: functions/trialUpdater.handle
+    timeout: 10
+
+  updatesNotifier:
+    handler: functions/updatesNotifier.handle
+
+  create:
+    handler: functions/insertTrial.handle
+    timeout: 30
+    events:
+      - http:
+          path: trials/create
+          method: post
+
+stepFunctions:
+  stateMachines:
+    outdatedTrialsChecker:
+      definition:
+        Comment: "Start the process for checking trials that are outdated"
+        StartAt: runOutdatedTrialsChecker
+        States:
+          runOutdatedTrialsChecker:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [outdatedTrialsChecker, Arn]
+            Next: updateTrial
+          updateTrial:
+            Type: Map
+            MaxConcurrency: 2
+            Iterator:
+              StartAt: trialUpdater
+              States:
+                trialUpdater:
+                  Type: Task
+                  Resource:
+                    Fn::GetAtt: [trialUpdater, Arn]
+                  End: true
+            Next: updatesNotifier
+          updatesNotifier:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [updatesNotifier, Arn]
+            End: true
+      events:
+        - http:
+            path: runOutdatedTrialsChecker
+            method: GET
+        - schedule:
+            rate: rate(6 hours)
+            enabled: true
+
+resources: # CloudFormation template syntax
+  Resources:
+    TrialsTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Delete
+      Properties:
+        TableName: ${self:provider.environment.TRIALS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 2
+          WriteCapacityUnits: 2
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
+
+custom:
+  secrets: ${file(secrets.json)}
+  stepFunctionsOffline:
+    runOutdatedTrialsChecker: outdatedTrialsChecker
+    updateTrial: trialUpdater
+  dynamodb:
+    stages:
+      - dev
+      - prod
+    region:
+      dev: localhost
+      prod: eu-central-1
+    dev_endpoint: http://localhost:${self:custom.dynamodb.start.port}
+    start:
+      port: 8000
+      inMemory: true
+      heapInitial: 200m
+      heapMax: 1g
+      migrate: true
+      seed: true
+      convertEmptyValues: true
+    seed:
+      domain:
+        sources:
+          - table: ${self:provider.environment.TRIALS_TABLE}
+            sources: [db/seeds/dev/trials.json]
