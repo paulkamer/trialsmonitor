@@ -14,31 +14,19 @@ const CLINICALTRIALS_HISTORY_BASE_URL = `${CLINICALTRIALS_BASE_URL}/history`;
  *
  */
 class UpdatesNotifier {
-  constructor (trialIds) {
+  constructor(trialIds) {
     this.trialIds = trialIds;
   }
 
-  async notify () {
-    const db = new DbHelper();
-    const fetchAttributes = ['id','title','acronym','phase','studyStatus','lastUpdated','diff'];
-
-    const trials = await db.fetchTrials(this.trialIds, fetchAttributes);
+  async notify() {
+    const trials = await this.fetchTrials();
 
     if (!trials || trials.length === 0) {
       console.error('No trials were found');
       return false;
     }
 
-    const subject = `[TrialMonitor] ${this.trialIds.length} updates found`;
-    const textBody = this.formatBody({ trials, lineEnd: LINE_END_TXT });
-    const htmlBody = this.formatBody({ trials, lineEnd: LINE_END_HTML });
-
-    const emailParams = {
-      toAddresses: [process.env.EMAIL_TO_ADDRESS],
-      subject,
-      textBody,
-      htmlBody,
-    };
+    const emailParams = await this.prepareEmailParameters(trials);
 
     try {
       await this.sendEmail(emailParams);
@@ -50,30 +38,72 @@ class UpdatesNotifier {
     return true;
   }
 
+  async fetchTrials() {
+    const db = new DbHelper();
+    const fetchAttributes = [
+      'id',
+      'title',
+      'acronym',
+      'phase',
+      'studyStatus',
+      'lastUpdated',
+      'diff',
+    ];
+
+    return await db.fetchTrials(this.trialIds, fetchAttributes);
+  }
+
+  async prepareEmailParameters(trials) {
+    const subject = `[TrialMonitor] ${this.trialIds.length} updates found`;
+    const textBody = this.formatBody({ trials, lineEnd: LINE_END_TXT });
+    const htmlBody = this.formatBody({ trials, lineEnd: LINE_END_HTML });
+
+    return {
+      toAddresses: [process.env.EMAIL_TO_ADDRESS],
+      subject,
+      textBody,
+      htmlBody,
+    };
+  }
+
   /**
    * Format the email body
    *
    * @param {*} param
    */
-  formatBody ({ trials, lineEnd }) {
+  formatBody({ trials, lineEnd }) {
     let body = `Hello, we found ${trials.length} updated trials:${lineEnd.repeat(2)}`;
 
-    const trialsList = trials.map((trial) => {
-      const phase = trial.phase && trial.phase.S || '?';
-      const studyStatus = trial.studyStatus && trial.studyStatus.S || '?';
-      const title = trial.title && trial.title.S || '?';
-      const acronym = trial.acronym && trial.acronym.S || '?';
+    const formatTrialLines = this.formatTrialLines({ trials, lineEnd });
 
-      return `
-        ${title} (${acronym})${lineEnd}
-        <a href="${CLINICALTRIALS_SHOW_BASE_URL}/${trial.id.S}" target="_blank">${trial.id.S}</a>
-        (<a href="${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.id.S}" target="_blank">history</a>) - ${phase} - ${studyStatus}
-      `;
-    });
-
-    body += trialsList.join(lineEnd.repeat(2));
+    body += formatTrialLines.join(lineEnd.repeat(2));
 
     return body;
+  }
+
+  /**
+   * Format a line for each updated trial, for the email body
+   * @param {*} param0
+   */
+  formatTrialLines({ trials, lineEnd }) {
+    return trials.map(trial => {
+      const phase = (trial.phase && trial.phase.S) || '?';
+      const studyStatus = (trial.studyStatus && trial.studyStatus.S) || '?';
+      const title = (trial.title && trial.title.S) || '?';
+      const acronym = (trial.acronym && trial.acronym.S) || '?';
+
+      if (lineEnd === LINE_END_TXT) {
+        return [
+          `${title} (${acronym}) ${phase} - ${studyStatus}`,
+          `${CLINICALTRIALS_SHOW_BASE_URL}/${trial.id.S} | ${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.id.S}`,
+        ].join(lineEnd);
+      }
+
+      return [
+        `${title} (${acronym})`,
+        `<a href="${CLINICALTRIALS_SHOW_BASE_URL}/${trial.id.S}" target="_blank">${trial.id.S}</a> (<a href="${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.id.S}" target="_blank">history</a>) - ${phase} - ${studyStatus}`,
+      ].join(lineEnd);
+    });
   }
 
   /**
@@ -81,7 +111,7 @@ class UpdatesNotifier {
    *
    * @param {*} param
    */
-  async sendEmail ({ toAddresses, subject, textBody, htmlBody }) {
+  async sendEmail({ toAddresses, subject, textBody, htmlBody }) {
     const fromAddress = process.env.EMAIL_FROM_ADDRESS;
 
     const emailParams = {
@@ -101,7 +131,6 @@ class UpdatesNotifier {
 
     return await ses.sendEmail(emailParams).promise();
   }
-
 }
 
 module.exports = UpdatesNotifier;
