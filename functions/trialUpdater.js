@@ -6,7 +6,7 @@ const TrialUpdater = require('../src/TrialUpdater');
  *
  * @param {String} trialId
  */
-const handle = async (trialId) => {
+const handle = async trialId => {
   console.debug('[functionTrialUpdater.handle] trialId:', trialId);
 
   const updater = new TrialUpdater();

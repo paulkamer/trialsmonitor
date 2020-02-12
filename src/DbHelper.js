@@ -10,9 +10,9 @@ class DbHelper {
   /**
    * Initialize the DB connection
    */
-  constructor () {
+  constructor() {
     const dynamoDbConfig = {
-      region:  process.env.DYNAMODB_REGION,
+      region: process.env.DYNAMODB_REGION,
       apiVersion: process.env.DYNAMODB_API_VERSION,
     };
 
@@ -24,32 +24,33 @@ class DbHelper {
   /**
    * Insert a new trialId into the trials table.
    */
-  insertTrialId (trialId) {
+  insertTrialId(trialId) {
     const params = {
       TableName: TABLE_TRIALS,
       Item: {
         id: { S: trialId },
-        lastUpdated: { N: '0' } // Ensures lastUpdated attribute is present
+        lastUpdated: { N: '0' }, // Ensures lastUpdated attribute is present
       },
-      ConditionExpression: 'attribute_not_exists(id)'
+      ConditionExpression: 'attribute_not_exists(id)',
     };
 
-    return new Promise((resolve) => {
-      this.db.putItem(params)
-             .promise()
-             .then(() => {
-               resolve(true);
-             })
-             .catch(()=> {
-                resolve(false);
-              });
+    return new Promise(resolve => {
+      this.db
+        .putItem(params)
+        .promise()
+        .then(() => {
+          resolve(true);
+        })
+        .catch(() => {
+          resolve(false);
+        });
     });
   }
 
   /**
    * Returns all trialId's stored in the "trials" table
    */
-  async listTrials () {
+  async listTrials() {
     const queryParams = {
       TableName: TABLE_TRIALS,
       Select: 'SPECIFIC_ATTRIBUTES',
@@ -60,10 +61,10 @@ class DbHelper {
       const data = await this.db.scan(queryParams).promise();
 
       const trialsById = {};
-      data.Items.forEach((trial) => {
+      data.Items.forEach(trial => {
         trialsById[trial.id.S] = {
           id: trial.id.S,
-          lastUpdated: Number(trial.lastUpdated.N) || 0
+          lastUpdated: Number(trial.lastUpdated.N) || 0,
         };
       });
 
@@ -79,12 +80,12 @@ class DbHelper {
    * Fetch a single trial record
    * @param {String} trialId
    */
-  async fetchTrial (trialId) {
+  async fetchTrial(trialId) {
     try {
       const params = {
         TableName: TABLE_TRIALS,
         Key: {
-          id: { S: trialId }
+          id: { S: trialId },
         },
       };
 
@@ -102,16 +103,16 @@ class DbHelper {
    * @param {Array} List of trialIds
    * @param {Array} List of attribute names to return; all by default
    */
-  async fetchTrials (trialIds, attributesToReturn = []) {
+  async fetchTrials(trialIds, attributesToReturn = []) {
     let result;
     try {
       const params = {
         RequestItems: {
           [TABLE_TRIALS]: {
-            Keys: trialIds.map((trialId) => ({ id: { S: trialId }})),
+            Keys: trialIds.map(trialId => ({ id: { S: trialId } })),
             ProjectionExpression: attributesToReturn.join(','),
-          }
-        }
+          },
+        },
       };
 
       result = await this.db.batchGetItem(params).promise();
@@ -136,22 +137,23 @@ class DbHelper {
    * @param {String} trialId
    * @param {Object}
    */
-  async updateTrial (trialId, { trial, title, acronym, phase, studyStatus, lastUpdated, diff }) {
+  async updateTrial(trialId, { trial, title, acronym, phase, studyStatus, lastUpdated, diff }) {
     const params = {
       TableName: TABLE_TRIALS,
       Key: {
-        id: { S: trialId }
+        id: { S: trialId },
       },
-      UpdateExpression: 'SET title = :title, acronym = :acronym, phase = :phase, studyStatus = :studyStatus, trial = :trial, prevTrial = if_not_exists(trial, :prevTrialFallback), diff = :diff, lastUpdated = :lastUpdated',
+      UpdateExpression:
+        'SET title = :title, acronym = :acronym, phase = :phase, studyStatus = :studyStatus, trial = :trial, prevTrial = if_not_exists(trial, :prevTrialFallback), diff = :diff, lastUpdated = :lastUpdated',
       ExpressionAttributeValues: {
-        ':title': { 'S': title },
-        ':acronym': { 'S': acronym },
-        ':phase': { 'S': phase },
-        ':studyStatus': { 'S': studyStatus },
-        ':trial': { 'S': JSON.stringify(trial) },
-        ':lastUpdated': { 'N': String(lastUpdated) },
-        ':diff': { 'S': diff },
-        ':prevTrialFallback': { 'S': '{}' },
+        ':title': { S: title },
+        ':acronym': { S: acronym },
+        ':phase': { S: phase },
+        ':studyStatus': { S: studyStatus },
+        ':trial': { S: JSON.stringify(trial) },
+        ':lastUpdated': { N: String(lastUpdated) },
+        ':diff': { S: diff },
+        ':prevTrialFallback': { S: '{}' },
       },
     };
 

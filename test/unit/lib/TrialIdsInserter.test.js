@@ -23,14 +23,13 @@ describe('TrialIdsInserter', () => {
       inserter = new TrialIdsInserter();
       const result = await inserter.insertTrials(trialIds);
 
-      expect(result).to.eql([true,true]);
+      expect(result).to.eql([true, true]);
     });
 
     after(() => {
       dbHelperStub.restore();
     });
   });
-
 
   context('Invalid input', () => {
     const invalidTrialIds = [{}, 12345];
@@ -48,7 +47,7 @@ describe('TrialIdsInserter', () => {
       inserter = new TrialIdsInserter();
       const result = await inserter.insertTrials(invalidTrialIds);
 
-      expect(result).to.eql([false,false]);
+      expect(result).to.eql([false, false]);
     });
 
     after(() => {

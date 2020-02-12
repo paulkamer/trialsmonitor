@@ -6,7 +6,7 @@ class OutdatedTrialsChecker {
    * Returns a list of trialIds that are outdated in our DB. i.e. they were updated on
    * ClinicalTrials.gov
    */
-  async listOutdatedTrials () {
+  async listOutdatedTrials() {
     const db = new DbHelper();
     const api = new ClinicalTrialsApi();
 
@@ -25,10 +25,10 @@ class OutdatedTrialsChecker {
    * @param {*} trialsById Trials in our database indexed by id
    * @param {Array} trials list of trials from clinicaltrials.gov with their LastUpdatePostDate
    */
-  determineOutdatedTrials (trialsById, trials) {
+  determineOutdatedTrials(trialsById, trials) {
     const outdatedTrials = [];
 
-    trials.forEach((trial) => {
+    trials.forEach(trial => {
       let trialId;
       let isOutdated = false;
       try {

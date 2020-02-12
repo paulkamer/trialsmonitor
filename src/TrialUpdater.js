@@ -4,7 +4,7 @@ const DbHelper = require('./DbHelper');
 const ClinicalTrialsApi = require('./ClinicalTrialsApi');
 
 class TrialUpdater {
-  async updateTrial (trialId) {
+  async updateTrial(trialId) {
     const db = new DbHelper();
     const api = new ClinicalTrialsApi();
 
@@ -31,7 +31,7 @@ class TrialUpdater {
    * @param {String} trialId
    * @param {*} newTrial
    */
-  extractAttributes (newTrial) {
+  extractAttributes(newTrial) {
     // Default to '?' because DynamoDB doesnt allow null values.
     let [title, acronym, phase, studyStatus] = Array(4).fill('?');
 
@@ -54,7 +54,7 @@ class TrialUpdater {
    * @param {*} currentTrial
    * @param {*} newTrial
    */
-  determineDiff (currentTrial, newTrial) {
+  determineDiff(currentTrial, newTrial) {
     let diff = '{}';
 
     // Determining DIFF does not belong in a DBHelper component!

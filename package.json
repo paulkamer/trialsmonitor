@@ -1,9 +1,12 @@
 {
   "name": "clinical-trials-monitor",
   "version": "0.2.0",
-  "homepage" : "https://github.com/paulkamer/trialsmonitor",
-  "author" : "Paul Kamer <paulkamer@gmail.com>",
-  "repository" : {"type": "git", "url": "git://github.com/paulkamer/trialsmonitor.git"},
+  "homepage": "https://github.com/paulkamer/trialsmonitor",
+  "author": "Paul Kamer <paulkamer@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/paulkamer/trialsmonitor.git"
+  },
   "private": true,
   "license": "ISC",
   "engines": {

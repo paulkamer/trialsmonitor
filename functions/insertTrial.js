@@ -5,7 +5,7 @@ const TrialIdsInserter = require('../src/TrialIdsInserter');
  *
  * @param {*} event
  */
-const handle = async (event) => {
+const handle = async event => {
   let trialIds = [];
 
   // Determine the trialIds to insert.
@@ -37,7 +37,7 @@ const handle = async (event) => {
 /**
  * Format response; determine if/how many failed.
  */
-function formatResponse (numTrialsReceived, results) {
+function formatResponse(numTrialsReceived, results) {
   let numFailed = 0;
 
   let statusCode = 200;
@@ -55,12 +55,12 @@ function formatResponse (numTrialsReceived, results) {
     statusCode,
     body: JSON.stringify({
       trialsReceived: numTrialsReceived,
-      trialsInserted: (numTrialsReceived - numFailed),
+      trialsInserted: numTrialsReceived - numFailed,
     }),
     isBase64Encoded: false,
   };
 
   return response;
-};
+}
 
 module.exports = { handle };

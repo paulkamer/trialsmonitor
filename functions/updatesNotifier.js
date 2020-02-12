@@ -5,7 +5,7 @@ const UpdatesNotifier = require('../src/UpdatesNotifier');
  *
  * @param {String[]} input A list of updated trial IDs
  */
-const handle = async (trialIds) => {
+const handle = async trialIds => {
   console.debug('[functionUpdatesNotifier.handle] event:', JSON.stringify(trialIds, null, 2));
 
   const notifier = new UpdatesNotifier(trialIds);

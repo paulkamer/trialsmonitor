@@ -4,7 +4,6 @@ const sinon = require('sinon');
 const insertTrial = require('../../../functions/insertTrial');
 const TrialIdsInserter = require('../../../src/TrialIdsInserter');
 
-
 describe('insertTrial', () => {
   let trialIdsInserterStub;
 
@@ -18,7 +17,7 @@ describe('insertTrial', () => {
     // Stub the TrialIdsInserter so there is no dependency on DynamoDB
     before(() => {
       trialIdsInserterStub = sinon.stub(TrialIdsInserter.prototype, 'insertTrials');
-      trialIdsInserterStub.callsFake((input) => {
+      trialIdsInserterStub.callsFake(input => {
         expect(input[0]).to.eq(trialIds[0]);
         expect(input[1]).to.eq(trialIds[1]);
 
@@ -30,7 +29,7 @@ describe('insertTrial', () => {
       const event = { body: { trialIds } };
       const context = {};
       const callback = () => {};
-      const expectedResponseBody =  JSON.stringify({
+      const expectedResponseBody = JSON.stringify({
         trialsReceived: trialIds.length,
         trialsInserted: trialIds.length,
       });
@@ -54,10 +53,12 @@ describe('insertTrial', () => {
       const response = await insertTrial.handle(event, context);
 
       expect(response.statusCode).to.eq(400);
-      expect(response.body).to.eq(JSON.stringify({
-        trialsReceived: 0,
-        trialsInserted: 0,
-      }));
+      expect(response.body).to.eq(
+        JSON.stringify({
+          trialsReceived: 0,
+          trialsInserted: 0,
+        })
+      );
     });
 
     after(() => {

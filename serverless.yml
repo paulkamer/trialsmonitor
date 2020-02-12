@@ -8,7 +8,7 @@ provider:
   region: eu-central-1
   stage: ${opt:stage,'dev'}
   iamManagedPolicies:
-    - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+    - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -21,18 +21,18 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
         - dynamodb:BatchGetItem
-      Resource: "arn:aws:dynamodb:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:table/*"
+      Resource: 'arn:aws:dynamodb:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:table/*'
     - Effect: Allow
       Action:
         - ses:SendEmail
-      Resource: "arn:aws:ses:eu-central-1:${self:custom.secrets.ACCOUNT_ID}:identity/*"
+      Resource: 'arn:aws:ses:eu-central-1:${self:custom.secrets.ACCOUNT_ID}:identity/*'
 
   environment:
     STAGE: ${self:provider.stage}
     DYNAMODB_REGION: ${self:custom.dynamodb.region.${self:provider.stage}}
     DYNAMODB_API_VERSION: '2012-08-10'
     DYNAMODB_DEV_ENDPOINT: ${self:custom.dynamodb.dev_endpoint}
-    TRIALS_TABLE: "trials_${self:provider.stage}"
+    TRIALS_TABLE: 'trials_${self:provider.stage}'
     EMAIL_FROM_ADDRESS: ${self:custom.secrets.EMAIL_FROM_ADDRESS}
     EMAIL_TO_ADDRESS: ${self:custom.secrets.EMAIL_TO_ADDRESS}
 
@@ -43,7 +43,7 @@ plugins:
   - serverless-dynamodb-local
 
 package:
- exclude:
+  exclude:
     - .dynamodb/**
     - yarn.lock
     - package.json
@@ -75,7 +75,7 @@ stepFunctions:
   stateMachines:
     outdatedTrialsChecker:
       definition:
-        Comment: "Start the process for checking trials that are outdated"
+        Comment: 'Start the process for checking trials that are outdated'
         StartAt: runOutdatedTrialsChecker
         States:
           runOutdatedTrialsChecker:
