@@ -16,6 +16,7 @@ class DbHelper {
       apiVersion: process.env.DYNAMODB_API_VERSION,
     };
 
+    // On localhost the 'endpoint' is a required config setting
     if (process.env.STAGE === 'dev') dynamoDbConfig.endpoint = process.env.DYNAMODB_DEV_ENDPOINT;
 
     this.db = new AWS.DynamoDB(dynamoDbConfig);
@@ -55,25 +56,32 @@ class DbHelper {
       TableName: TABLE_TRIALS,
       Select: 'SPECIFIC_ATTRIBUTES',
       AttributesToGet: ['id', 'lastUpdated'],
+      Limit: 100,
     };
 
+    const trialsById = {};
+    let items;
     try {
-      const data = await this.db.scan(queryParams).promise();
+      // Loop until all items have been returned. DynamoDB has a limit of 1MB, so
+      // will not return all 100 rows in a single pass
+      do {
+        items = await this.db.scan(queryParams).promise();
+        items.Items.forEach(trial => {
+          trialsById[trial.id.S] = {
+            id: trial.id.S,
+            lastUpdated: Number(trial.lastUpdated.N) || 0,
+          };
+        });
 
-      const trialsById = {};
-      data.Items.forEach(trial => {
-        trialsById[trial.id.S] = {
-          id: trial.id.S,
-          lastUpdated: Number(trial.lastUpdated.N) || 0,
-        };
-      });
-
-      return trialsById;
+        queryParams.ExclusiveStartKey = items.LastEvaluatedKey;
+      } while (typeof items.LastEvaluatedKey !== 'undefined');
     } catch (e) {
       console.error(e);
 
       return [];
     }
+
+    return trialsById;
   }
 
   /**
