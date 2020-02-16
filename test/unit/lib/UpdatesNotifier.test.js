@@ -4,7 +4,7 @@ const sinon = require('sinon');
 const DbHelper = require('./../../../src/DbHelper');
 const UpdatesNotifier = require('../../../src/UpdatesNotifier');
 
-describe('TrialIdsInserter', () => {
+describe('UpdatesNotifier', () => {
   const testTrialIds = ['NCT001'];
 
   const testTrials = [

@@ -12,11 +12,18 @@ class TrialUpdater {
     const newTrial = await api.fetchTrial(trialId);
     if (!newTrial || !newTrial.Study) return false;
 
-    const attributesToUpdate = this.extractAttributes(newTrial);
-
     const currentTrial = await db.fetchTrial(trialId);
+    if (!currentTrial) return false;
 
-    attributesToUpdate.diff = this.determineDiff(currentTrial, newTrial);
+    let currentTrialJson;
+    try {
+      currentTrialJson = JSON.parse(currentTrial.trial.S);
+    } catch (e) {
+      console.error(e);
+    }
+
+    const attributesToUpdate = this.extractAttributes(newTrial);
+    attributesToUpdate.diff = this.determineDiff(currentTrialJson, newTrial);
     attributesToUpdate.lastUpdated = Math.round(new Date().getTime() / 1000);
     attributesToUpdate.trial = newTrial;
 
@@ -55,11 +62,12 @@ class TrialUpdater {
    * @param {*} newTrial
    */
   determineDiff(currentTrial, newTrial) {
-    let diff = '{}';
+    let diff = '-';
 
-    // Determining DIFF does not belong in a DBHelper component!
-    if (currentTrial && currentTrial.trial) {
-      diff = jsonDiff.diffString(JSON.parse(currentTrial.trial.S), newTrial) || '-';
+    try {
+      diff = jsonDiff.diffString(currentTrial, newTrial) || '-';
+    } catch (e) {
+      console.error(e);
     }
 
     return diff;

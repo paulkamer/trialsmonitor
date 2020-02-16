@@ -5,7 +5,8 @@
     "title": "Filgotinib in Long-Term Extension Study of Adults With Ulcerative Colitis",
     "acronym": "SELECTIONLTE",
     "studyStatus": "Enrolling by invitation",
-    "phase": "Phase 3"
+    "phase": "Phase 3",
+    "trial": ""
   },
   {
     "id": "NCT01023321",
@@ -13,6 +14,7 @@
     "title": "First-in-Human Single Ascending and Multiple Dose of GLPG0555",
     "acronym": "-",
     "studyStatus": "Completed",
-    "phase": "Phase 1"
+    "phase": "Phase 1",
+    "trial": ""
   }
 ]
