@@ -45,7 +45,10 @@ class OutdatedTrialsChecker {
       if (isOutdated) outdatedTrials.push(trialId);
     });
 
-    return outdatedTrials;
+    return {
+      results: outdatedTrials,
+      results_length: outdatedTrials.length, // Necessary for Choice state, which cant simply check the array length
+    };
   }
 }
 

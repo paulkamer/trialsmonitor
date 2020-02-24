@@ -82,10 +82,19 @@ stepFunctions:
             Type: Task
             Resource:
               Fn::GetAtt: [outdatedTrialsChecker, Arn]
-            Next: updateTrial
+            Next: checkIfTrialsNeedToBeUpdated
+          checkIfTrialsNeedToBeUpdated:
+            Type: Choice
+            Choices:
+             -
+                Variable: $.results_length
+                NumericEquals: 0
+                Next: SucceedState
+            Default: updateTrial
           updateTrial:
             Type: Map
             MaxConcurrency: 2
+            ItemsPath: $.results
             Iterator:
               StartAt: trialUpdater
               States:
@@ -100,6 +109,8 @@ stepFunctions:
             Resource:
               Fn::GetAtt: [updatesNotifier, Arn]
             End: true
+          SucceedState:
+            Type: Succeed
       events:
         - http:
             path: runOutdatedTrialsChecker

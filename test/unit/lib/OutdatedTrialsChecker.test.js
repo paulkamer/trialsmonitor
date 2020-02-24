@@ -52,7 +52,7 @@ describe('OutdatedTrialsChecker', () => {
       const result = checker.determineOutdatedTrials(trialsToCheck, trials);
 
       // Only one trial, the first, is outdated.
-      expect(result).to.eql([Object.keys(testTrials)[0]]);
+      expect(result.results).to.eql([Object.keys(testTrials)[0]]);
     });
   });
 });

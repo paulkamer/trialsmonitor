@@ -42,8 +42,8 @@ describe('TrialUpdater', () => {
     });
 
     it('Aborts updating when trial cannot be fetched', async () => {
-      updater = new TrialUpdater(testTrialId);
-      const result = await updater.updateTrial();
+      updater = new TrialUpdater();
+      const result = await updater.updateTrial(testTrialId);
 
       expect(result).to.eq(false);
     });
