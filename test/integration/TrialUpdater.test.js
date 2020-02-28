@@ -8,7 +8,6 @@ const DbHelper = require('../../src/DbHelper');
 const ClinicalTrialsApi = require('./../../src/ClinicalTrialsApi');
 const TrialUpdater = require('../../src/TrialUpdater');
 
-
 describe('insertTrial', () => {
   // (re-)seed the local DB
   beforeEach(() =>{
@@ -68,5 +67,4 @@ describe('insertTrial', () => {
       ClinicalTrialsApiStub.restore();
     });
   });
-
 });

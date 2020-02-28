@@ -111,7 +111,7 @@ class DbHelper {
    * @param {Array} List of trialIds
    * @param {Array} List of attribute names to return; all by default
    */
-  async fetchTrials(trialIds, attributesToReturn = []) {
+  async fetchTrials(trialIds, attributesToReturn) {
     let result;
     try {
       const params = {
@@ -173,6 +173,38 @@ class DbHelper {
     }
 
     return true;
+  }
+
+    /**
+   * Delete trial records by id
+   * @param {Array} List of trialIds
+   */
+  async deleteTrials(trialIds) {
+    let result;
+    try {
+      const params = {
+        RequestItems: {
+          [TABLE_TRIALS]:
+            trialIds.map(trialId => ({
+              DeleteRequest: {
+                Key: { id: { S: trialId } } ,
+              }
+            }))
+        },
+      };
+
+      result = await this.db.batchWriteItem(params).promise();
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+
+    try {
+      return result;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
   }
 }
 
