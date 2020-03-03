@@ -51,11 +51,11 @@ class DbHelper {
   /**
    * Returns all trialId's stored in the "trials" table
    */
-  async listTrials() {
+  async listTrials(attributesToGet = ['id', 'lastUpdated']) {
     const queryParams = {
       TableName: TABLE_TRIALS,
       Select: 'SPECIFIC_ATTRIBUTES',
-      AttributesToGet: ['id', 'lastUpdated'],
+      AttributesToGet: attributesToGet,
       Limit: 100,
     };
 
@@ -67,8 +67,14 @@ class DbHelper {
       do {
         items = await this.db.scan(queryParams).promise();
         items.Items.forEach(trial => {
+          const result = {};
+
+          Object.entries(trial).forEach((e) => {
+            result[e[0]] = Object.values(trial[e[0]])[0];
+          });
+
           trialsById[trial.id.S] = {
-            id: trial.id.S,
+            ...result,
             lastUpdated: Number(trial.lastUpdated.N) || 0,
           };
         });
@@ -109,7 +115,7 @@ class DbHelper {
   /**
    * Fetch trial records by id
    * @param {Array} List of trialIds
-   * @param {Array} List of attribute names to return; all by default
+   * @param {Array} List of attribute names to return
    */
   async fetchTrials(trialIds, attributesToReturn) {
     let result;
@@ -175,7 +181,7 @@ class DbHelper {
     return true;
   }
 
-    /**
+  /**
    * Delete trial records by id
    * @param {Array} List of trialIds
    */
