@@ -79,6 +79,14 @@ functions:
           path: trials/list
           method: get
 
+  delete:
+    handler: functions/deleteTrial.handle
+    timeout: 30
+    events:
+      - http:
+          path: trials
+          method: delete
+
 stepFunctions:
   stateMachines:
     outdatedTrialsChecker:
