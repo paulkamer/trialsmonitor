@@ -68,7 +68,7 @@ functions:
     timeout: 30
     events:
       - http:
-          path: trials/create
+          path: trials
           method: post
 
   listTrials:
