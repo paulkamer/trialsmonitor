@@ -60,9 +60,5 @@ describe('insertTrial', () => {
         })
       );
     });
-
-    after(() => {
-      trialIdsInserterStub.restore();
-    });
   });
 });
