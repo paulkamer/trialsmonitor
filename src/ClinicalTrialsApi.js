@@ -16,19 +16,7 @@ class ClinicalTrialsApi {
     const fields = ['NCTId', 'LastUpdatePostDate', 'LastUpdateSubmitDate'].join(',');
     const expression = encodeURI(nctIds.join(' OR '));
 
-    const url = `https://www.clinicaltrials.gov/api/query/study_fields?expr=${expression}&fields=${fields}&fmt=JSON&field=NCTId&max_rnk=1000`;
-    console.debug('listTrialsForUpdateCheck', url);
-
-    try {
-      const res = await fetch(url, { timeout: 5000 });
-      const data = await res.json();
-
-      return data.StudyFieldsResponse.StudyFields;
-    } catch (e) {
-      console.error(e);
-
-      return [];
-    }
+    return this.findTrials(expression, fields);
   }
 
   /**
@@ -54,6 +42,29 @@ class ClinicalTrialsApi {
       console.error(e);
 
       return false;
+    }
+  }
+
+  /**
+   * Find trials by a query
+   * @todo paginate if NStudiesFound > NStudiesReturned
+   *
+   * @param {*} expression
+   * @param {*} fields
+   */
+  async findTrials(expression, fields) {
+    const url = `https://www.clinicaltrials.gov/api/query/study_fields?expr=${expression}&fields=${fields}&fmt=JSON&max_rnk=1000`;
+    console.debug('listTrialsForUpdateCheck', url);
+
+    try {
+      const res = await fetch(url, { timeout: 5000 });
+      const data = await res.json();
+
+      return data.StudyFieldsResponse.StudyFields;
+    } catch (e) {
+      console.error(e);
+
+      return [];
     }
   }
 }

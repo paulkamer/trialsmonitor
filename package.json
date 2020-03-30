@@ -23,6 +23,7 @@
     "prettify:updated": "pipe-git-updated --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml -- prettier --write",
     "test:unit": "mocha test/unit/**/*.test.js",
     "test:integration": "mocha --timeout 15000 test/integration/**/*.test.js",
+    "test:single": "mocha --timeout 15000",
     "test": "yarn test:unit && yarn test:integration",
     "deploy:prod": "serverless deploy --stage prod"
   },

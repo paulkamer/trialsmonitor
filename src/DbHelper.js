@@ -2,6 +2,7 @@
 const AWS = require('aws-sdk');
 
 const TABLE_TRIALS = process.env.TRIALS_TABLE;
+const TABLE_SEARCHES = process.env.SEARCHES_TABLE;
 
 /**
  * Database helper
@@ -69,14 +70,16 @@ class DbHelper {
         items.Items.forEach(trial => {
           const result = {};
 
+          // Extract values from DB results. Values are stored under the field type
+          // key, i.e. { "id": { "S": "<trial_id>" }}
           Object.entries(trial).forEach((e) => {
             result[e[0]] = Object.values(trial[e[0]])[0];
           });
 
-          trialsById[trial.id.S] = {
-            ...result,
-            lastUpdated: Number(trial.lastUpdated.N) || 0,
-          };
+          // Ensure the lastUpdated value is a Number
+          if (trial.lastUpdated) result.lastUpdated = Number(trial.lastUpdated.N) || 0;
+
+          trialsById[trial.id.S] = { ...result };
         });
 
         queryParams.ExclusiveStartKey = items.LastEvaluatedKey;
@@ -84,7 +87,7 @@ class DbHelper {
     } catch (e) {
       console.error(e);
 
-      return [];
+      return {};
     }
 
     return trialsById;
@@ -211,6 +214,49 @@ class DbHelper {
       console.error(e);
       return false;
     }
+  }
+
+
+  /**
+   * Returns all trialId's stored in the "trials" table
+   */
+  async listSearchQueries(attributesToGet = ['id', 'query']) {
+    const queryParams = {
+      TableName: TABLE_SEARCHES,
+      Select: 'SPECIFIC_ATTRIBUTES',
+      AttributesToGet: attributesToGet,
+      Limit: 100,
+    };
+
+    const searchQueries = [];
+    let items;
+    try {
+      // Loop until all items have been returned.
+      do {
+        items = await this.db.scan(queryParams).promise();
+        items.Items.forEach(searchQuery => {
+          const result = {};
+
+          Object.entries(searchQuery).forEach((e) => {
+            if (!attributesToGet.includes(e[0])) return;
+
+            result[e[0]] = Object.values(searchQuery[e[0]])[0];
+          });
+
+          searchQueries.push({
+            ...result,
+          });
+        });
+
+        queryParams.ExclusiveStartKey = items.LastEvaluatedKey;
+      } while (typeof items.LastEvaluatedKey !== 'undefined');
+    } catch (e) {
+      console.error(e);
+
+      return [];
+    }
+
+    return searchQueries;
   }
 }
 

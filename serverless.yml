@@ -33,6 +33,7 @@ provider:
     DYNAMODB_API_VERSION: '2012-08-10'
     DYNAMODB_DEV_ENDPOINT: ${self:custom.dynamodb.dev_endpoint}
     TRIALS_TABLE: 'trials_${self:provider.stage}'
+    SEARCHES_TABLE: 'searches_${self:provider.stage}'
     EMAIL_FROM_ADDRESS: ${self:custom.secrets.EMAIL_FROM_ADDRESS}
     EMAIL_TO_ADDRESS: ${self:custom.secrets.EMAIL_TO_ADDRESS}
 
@@ -53,6 +54,10 @@ package:
     - prettier.config.js
 
 functions:
+  newTrialsChecker:
+    handler: functions/newTrialsChecker.handle
+    timeout: 30
+
   outdatedTrialsChecker:
     handler: functions/outdatedTrialsChecker.handle
 
@@ -89,9 +94,39 @@ functions:
 
 stepFunctions:
   stateMachines:
+    newTrialsChecker:
+      definition:
+        Comment: 'Check for new trials, based on search queries'
+        StartAt: runNewTrialsChecker
+        States:
+          runNewTrialsChecker:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [newTrialsChecker, Arn]
+            Next: notifyIfNecessary
+          notifyIfNecessary:
+            Type: Choice
+            Choices:
+             -
+                Variable: $.results_length
+                NumericEquals: 0
+                Next: SucceedState
+            Default: updatesNotifier
+          updatesNotifier:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [updatesNotifier, Arn]
+            End: true
+          SucceedState:
+            Type: Succeed
+      events:
+        - schedule:
+            rate: rate(1 day)
+            enabled: true
+
     outdatedTrialsChecker:
       definition:
-        Comment: 'Start the process for checking trials that are outdated'
+        Comment: 'Check for outdated trials'
         StartAt: runOutdatedTrialsChecker
         States:
           runOutdatedTrialsChecker:
@@ -153,6 +188,22 @@ resources: # CloudFormation template syntax
           WriteCapacityUnits: 2
         StreamSpecification:
           StreamViewType: NEW_IMAGE
+    SearchesTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Delete
+      Properties:
+        TableName: ${self:provider.environment.SEARCHES_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: N
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
 
 custom:
   secrets: ${file(secrets.json)}
@@ -180,3 +231,5 @@ custom:
         sources:
           - table: ${self:provider.environment.TRIALS_TABLE}
             sources: [db/seeds/dev/trials.json]
+          - table: ${self:provider.environment.SEARCHES_TABLE}
+            sources: [db/seeds/dev/searches.json]
