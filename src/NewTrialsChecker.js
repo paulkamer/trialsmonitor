@@ -48,7 +48,7 @@ class NewTrialsChecker {
     }
 
     // Only return NCT ids when all new trial IDs were inserted successfully into the DB
-    const results = insertResult.length === newNctIds.length ? newNctIds : [];
+    const results = insertResult && insertResult.length === newNctIds.length ? newNctIds : [];
 
     return {
       results,
