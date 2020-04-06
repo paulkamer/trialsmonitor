@@ -1,4 +1,5 @@
 const TrialUpdater = require('../src/TrialUpdater');
+const { logger } = require('../lib/logger');
 
 /**
  * Fetch the lastest version of the given trial from the ClinicalTrials.gov API
@@ -7,13 +8,13 @@ const TrialUpdater = require('../src/TrialUpdater');
  * @param {String} trialId
  */
 const handle = async trialId => {
-  console.debug('[functionTrialUpdater.handle] trialId:', trialId);
+  logger.debug('[functionTrialUpdater.handle] trialId:', trialId);
 
   const updater = new TrialUpdater();
   const result = await updater.updateTrial(trialId);
 
   if (!result) {
-    console.debug(`[functionTrialUpdater] Saving trial ${trialId} failed`);
+    logger.debug(`[functionTrialUpdater] Saving trial ${trialId} failed`);
     return false;
   }
 

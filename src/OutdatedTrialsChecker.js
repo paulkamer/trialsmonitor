@@ -1,5 +1,6 @@
 const DbHelper = require('./DbHelper');
 const ClinicalTrialsApi = require('./ClinicalTrialsApi');
+const { logger } = require('../lib/logger');
 
 class OutdatedTrialsChecker {
   /**
@@ -39,7 +40,7 @@ class OutdatedTrialsChecker {
 
         isOutdated = trialsById[trialId].lastUpdated < lastUpdatePosted;
       } catch (e) {
-        console.error('Failed to determine isOutdated', trial, e);
+        logger.error('Failed to determine isOutdated', trial, e);
       }
 
       if (isOutdated) outdatedTrials.push(trialId);

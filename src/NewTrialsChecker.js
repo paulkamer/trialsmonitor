@@ -1,6 +1,7 @@
 const DbHelper = require('./DbHelper');
 const ClinicalTrialsApi = require('./ClinicalTrialsApi');
 const TrialIdsInserter = require('./TrialIdsInserter');
+const { logger } = require('../lib/logger');
 
 /**
  * Find new trials, using stored search queries in the searchqueries_<env> DB table.
@@ -26,7 +27,7 @@ class NewTrialsChecker {
     // Fetch NCT id's from ClinicalTrials.gov API for the given search queries
     const allNctIdsForSearchQueries = await this.findNctIdsByQueries(searchQueries);
     if (!allNctIdsForSearchQueries.length) {
-      console.debug('No NCT IDs were found for the search queries');
+      logger.debug('No NCT IDs were found for the search queries');
       return false;
     }
 
@@ -44,7 +45,7 @@ class NewTrialsChecker {
       // Insert new trial IDs into our DB
       insertResult = await this.trialIdsInserter.insertTrials(newNctIds);
     } else {
-      console.debug('No new trials were found');
+      logger.debug('No new trials were found');
     }
 
     // Only return NCT ids when all new trial IDs were inserted successfully into the DB

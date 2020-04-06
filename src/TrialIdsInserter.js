@@ -1,4 +1,5 @@
 const DbHelper = require('./DbHelper');
+const { logger } = require('../lib/logger');
 
 /**
  * Handler for inserting trial IDs, for new trials to monitor
@@ -11,7 +12,7 @@ class TrialIdsInserter {
     try {
       results = await Promise.all(trialIds.map(trialId => db.insertTrialId(trialId)));
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
 
     return results;

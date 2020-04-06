@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const AWS = require('aws-sdk');
+const { logger } = require('../lib/logger');
 
 const TABLE_TRIALS = process.env.TRIALS_TABLE;
 const TABLE_SEARCHES = process.env.SEARCHES_TABLE;
@@ -85,7 +86,7 @@ class DbHelper {
         queryParams.ExclusiveStartKey = items.LastEvaluatedKey;
       } while (typeof items.LastEvaluatedKey !== 'undefined');
     } catch (e) {
-      console.error(e);
+      logger.error(e);
 
       return {};
     }
@@ -110,7 +111,7 @@ class DbHelper {
 
       return result.Item;
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       return false;
     }
   }
@@ -134,14 +135,14 @@ class DbHelper {
 
       result = await this.db.batchGetItem(params).promise();
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       return false;
     }
 
     try {
       return result.Responses[TABLE_TRIALS];
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       return false;
     }
   }
@@ -177,7 +178,7 @@ class DbHelper {
     try {
       await this.db.updateItem(params).promise();
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       return false;
     }
 
@@ -204,14 +205,14 @@ class DbHelper {
 
       result = await this.db.batchWriteItem(params).promise();
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       return false;
     }
 
     try {
       return result;
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       return false;
     }
   }
@@ -251,7 +252,7 @@ class DbHelper {
         queryParams.ExclusiveStartKey = items.LastEvaluatedKey;
       } while (typeof items.LastEvaluatedKey !== 'undefined');
     } catch (e) {
-      console.error(e);
+      logger.error(e);
 
       return [];
     }

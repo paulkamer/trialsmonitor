@@ -1,4 +1,5 @@
 const OutdatedTrialsChecker = require('../src/OutdatedTrialsChecker');
+const { logger } = require('../lib/logger');
 
 /**
  * Check for outdated Clinical Trials.
@@ -8,7 +9,7 @@ const handle = async () => {
   const checker = new OutdatedTrialsChecker();
   const outdatedTrials = await checker.listOutdatedTrials();
 
-  console.debug('outdatedTrials', outdatedTrials);
+  logger.debug('outdatedTrials', outdatedTrials);
 
   return outdatedTrials;
 };

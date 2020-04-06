@@ -2,6 +2,7 @@
 const aws = require('aws-sdk');
 
 const DbHelper = require('./DbHelper');
+const { logger } = require('../lib/logger');
 
 const LINE_END_TXT = '\n';
 const LINE_END_HTML = '<br/>';
@@ -22,7 +23,7 @@ class UpdatesNotifier {
     const trials = await this.fetchTrials();
 
     if (!trials || trials.length === 0) {
-      console.error('No trials were found');
+      logger.error('No trials were found');
       return false;
     }
 
@@ -31,7 +32,7 @@ class UpdatesNotifier {
     try {
       await this.sendEmail(emailParams);
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       return false;
     }
 

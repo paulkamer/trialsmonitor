@@ -1,4 +1,5 @@
 const DbHelper = require('../src/DbHelper');
+const { logger } = require('../lib/logger');
 
 /**
  * Delete a trial
@@ -34,7 +35,7 @@ function extractTrialIdFromEvent(event) {
       throw new Error('Cannot parse event body');
     }
   } catch (e) {
-    console.error(e);
+    logger.error(e);
   }
 
   return trialId;

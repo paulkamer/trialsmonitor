@@ -1,4 +1,5 @@
 const TrialIdsInserter = require('../src/TrialIdsInserter');
+const { logger } = require('../lib/logger');
 
 /**
  * Insert a new trialId(s) into the trials table in DynamoDB, to start monitoring it.
@@ -18,12 +19,12 @@ const handle = async event => {
       throw new Error('Cannot parse event body');
     }
   } catch (e) {
-    console.error(e);
+    logger.error(e);
   }
 
   let results = [];
   if (trialIds.length === 0) {
-    console.debug('[functionInsertTrial] No trial IDs received');
+    logger.debug('[functionInsertTrial] No trial IDs received');
   } else {
     // Insert the trial IDs
     const inserter = new TrialIdsInserter();
@@ -49,7 +50,7 @@ function formatResponse(numTrialsReceived, results) {
 
   if (numTrialsReceived === 0 || numFailed > 0) statusCode = 400;
 
-  if (numFailed > 0) console.debug(`[functionInsertTrial] ${numFailed} failed to insert`);
+  if (numFailed > 0) logger.debug(`[functionInsertTrial] ${numFailed} failed to insert`);
 
   const response = {
     statusCode,

@@ -1,5 +1,7 @@
 const DbHelper = require('../src/DbHelper');
 
+const { logger } = require('../lib/logger');
+
 /**
  * List trials
  *
@@ -7,6 +9,8 @@ const DbHelper = require('../src/DbHelper');
  * @param {*} event
  */
 const handle = async () => {
+  logger.log('info', 'listTrials.handle');
+
   const trials = await fetchTrials();
 
   // Format & send response

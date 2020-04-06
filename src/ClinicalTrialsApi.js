@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const { logger } = require('../lib/logger');
 
 /**
  * Helper class to fetch data from the ClinicalTrials.gov API
@@ -25,7 +26,7 @@ class ClinicalTrialsApi {
    */
   async fetchTrial(trialId) {
     const url = `https://www.clinicaltrials.gov/api/query/full_studies?fmt=json&expr=${trialId}`;
-    console.debug('fetchTrial', url);
+    logger.debug('fetchTrial', url);
 
     try {
       const res = await fetch(url, { timeout: 3000 });
@@ -33,13 +34,13 @@ class ClinicalTrialsApi {
 
       // Validate API resonse
       if (data.FullStudiesResponse.NStudiesReturned !== 1) {
-        console.debug('API response (JSON)', data);
+        logger.debug('API response (JSON)', data);
         throw new Error('Unexpected API response received');
       }
 
       return data.FullStudiesResponse.FullStudies[0];
     } catch (e) {
-      console.error(e);
+      logger.error(e);
 
       return false;
     }
@@ -54,7 +55,7 @@ class ClinicalTrialsApi {
    */
   async findTrials(expression, fields) {
     const url = `https://www.clinicaltrials.gov/api/query/study_fields?expr=${expression}&fields=${fields}&fmt=JSON&max_rnk=1000`;
-    console.debug('listTrialsForUpdateCheck', url);
+    logger.debug('listTrialsForUpdateCheck', url);
 
     try {
       const res = await fetch(url, { timeout: 5000 });
@@ -62,7 +63,7 @@ class ClinicalTrialsApi {
 
       return data.StudyFieldsResponse.StudyFields;
     } catch (e) {
-      console.error(e);
+      logger.error(e);
 
       return [];
     }

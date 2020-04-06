@@ -2,6 +2,7 @@ const jsonDiff = require('json-diff');
 
 const DbHelper = require('./DbHelper');
 const ClinicalTrialsApi = require('./ClinicalTrialsApi');
+const { logger } = require('../lib/logger');
 
 class TrialUpdater {
   async updateTrial(trialId) {
@@ -19,7 +20,7 @@ class TrialUpdater {
     try {
       currentTrialJson = JSON.parse(currentTrial.trial.S);
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
 
     const attributesToUpdate = this.extractAttributes(newTrial);
@@ -48,7 +49,7 @@ class TrialUpdater {
       phase = newTrial.Study.ProtocolSection.DesignModule.PhaseList.Phase[0] || '?';
       studyStatus = newTrial.Study.ProtocolSection.StatusModule.OverallStatus || '?';
     } catch (e) {
-      console.debug(e);
+      logger.debug(e);
     }
 
     return { title, acronym, phase, studyStatus };
@@ -67,7 +68,7 @@ class TrialUpdater {
     try {
       diff = jsonDiff.diffString(currentTrial, newTrial) || '-';
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
 
     return diff;
