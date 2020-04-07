@@ -1,18 +1,36 @@
 const DbHelper = require('../src/DbHelper');
+
 const { logger } = require('../lib/logger');
+
+/**
+ * List trials
+ *
+ * @todo support requesting specific attributes of trials
+ * @param {*} event
+ */
+const getAll = async () => {
+  logger.log('info', 'trials.getAll');
+
+  const trials = await new DbHelper().listTrials(['id','title','lastUpdated','phase']);
+
+  // Format & send response
+  return formatResponse(trials);
+};
 
 /**
  * Delete a trial
  *
  * @param {*} event
  */
-const handle = async (event) => {
+const deleteTrial = async (event) => {
   const trialId = extractTrialIdFromEvent(event);
 
   let results = [];
 
   if (trialId) {
-    results = await deleteTrial(trialId);
+    const db = new DbHelper();
+
+    results = await db.deleteTrials([trialId]);
   }
 
   // Format & send response
@@ -42,16 +60,6 @@ function extractTrialIdFromEvent(event) {
 }
 
 /**
- * Delete a trial from the DB
- * @param {String} trialId
- */
-async function deleteTrial(trialId) {
-  const db = new DbHelper();
-
-  return await db.deleteTrials([trialId]);
-}
-
-/**
  * Format response; determine if/how many failed.
  */
 function formatResponse(results) {
@@ -63,11 +71,11 @@ function formatResponse(results) {
     statusCode,
     body: JSON.stringify({
       results_count: Object.keys(results).length,
+      results: Object.values(results),
     }),
-    isBase64Encoded: false,
   };
 
   return response;
 }
 
-module.exports = { handle };
+module.exports = { getAll, deleteTrial };

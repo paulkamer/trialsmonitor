@@ -1,7 +1,7 @@
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-const deleteTrialFunction = require('../../../functions/deleteTrial');
+const trialFunction = require('../../../functions/trials');
 const DbHelper = require('../../../src/DbHelper');
 
 describe('deleteTrial', () => {
@@ -30,9 +30,10 @@ describe('deleteTrial', () => {
       const callback = () => {};
       const expectedResponseBody = JSON.stringify({
         results_count: 1,
+        results: [true],
       });
 
-      const response = await deleteTrialFunction.handle(event, context, callback);
+      const response = await trialFunction.deleteTrial(event, context, callback);
 
       expect(response.statusCode).to.eq(200);
       expect(response.body).to.eq(expectedResponseBody);
@@ -48,12 +49,13 @@ describe('deleteTrial', () => {
       const event = {};
       const context = {};
 
-      const response = await deleteTrialFunction.handle(event, context);
+      const response = await trialFunction.deleteTrial(event, context);
 
       expect(response.statusCode).to.eq(400);
       expect(response.body).to.eq(
         JSON.stringify({
           results_count: 0,
+          results: [],
         })
       );
     });
