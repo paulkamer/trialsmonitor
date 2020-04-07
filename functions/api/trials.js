@@ -1,6 +1,6 @@
-const TrialIdsInserter = require('../src/TrialIdsInserter');
-const DbHelper = require('../src/DbHelper');
-const { logger } = require('../lib/logger');
+const TrialIdsInserter = require('../../src/TrialIdsInserter');
+const DbHelper = require('../../src/DbHelper');
+const { logger } = require('../../lib/logger');
 
 /**
  * List trials

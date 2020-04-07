@@ -71,21 +71,21 @@ functions:
 
 
   listTrials:
-    handler: functions/trials.getAll
+    handler: functions/api/trials.getAll
     timeout: 10
     events:
       - http:
           path: trials/all
           method: get
   createTrial:
-    handler: functions/trials.createTrial
+    handler: functions/api/trials.createTrial
     timeout: 30
     events:
       - http:
           path: trials
           method: post
   deleteTrial:
-    handler: functions/trials.deleteTrial
+    handler: functions/api/trials.deleteTrial
     timeout: 30
     events:
       - http:
