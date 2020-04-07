@@ -7,6 +7,7 @@ provider:
   runtime: nodejs12.x
   region: eu-central-1
   stage: ${opt:stage,'dev'}
+  cfnRole: 'arn:aws:iam::${self:custom.secrets.ACCOUNT_ID}:role/sls_cfn'
   iamManagedPolicies:
     - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
   iamRoleStatements:
