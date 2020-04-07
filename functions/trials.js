@@ -1,5 +1,5 @@
+const TrialIdsInserter = require('../src/TrialIdsInserter');
 const DbHelper = require('../src/DbHelper');
-
 const { logger } = require('../lib/logger');
 
 /**
@@ -15,6 +15,40 @@ const getAll = async () => {
 
   // Format & send response
   return formatResponse(trials);
+};
+
+/**
+ * Insert a new trialId(s) into the trials table in DynamoDB, to start monitoring it.
+ *
+ * @param {*} event
+ */
+const createTrial = async event => {
+  let trialIds = [];
+
+  // Determine the trialIds to insert.
+  try {
+    if (typeof event.body === 'string') {
+      trialIds = JSON.parse(event.body).trialIds;
+    } else if (event.body && Array.isArray(event.body.trialIds)) {
+      trialIds = event.body.trialIds;
+    } else {
+      throw new Error('Cannot parse event body');
+    }
+  } catch (e) {
+    logger.error(e);
+  }
+
+  let results = [];
+  if (trialIds.length === 0) {
+    logger.debug('[functionInsertTrial] No trial IDs received');
+  } else {
+    // Insert the trial IDs
+    const inserter = new TrialIdsInserter();
+    results = await inserter.insertTrials(trialIds);
+  }
+
+  // Format & send response
+  return formatResponse(results);
 };
 
 /**
@@ -78,4 +112,4 @@ function formatResponse(results) {
   return response;
 }
 
-module.exports = { getAll, deleteTrial };
+module.exports = { getAll, createTrial, deleteTrial };

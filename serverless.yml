@@ -69,13 +69,6 @@ functions:
   updatesNotifier:
     handler: functions/updatesNotifier.handle
 
-  createTrial:
-    handler: functions/insertTrial.handle
-    timeout: 30
-    events:
-      - http:
-          path: trials
-          method: post
 
   listTrials:
     handler: functions/trials.getAll
@@ -84,7 +77,13 @@ functions:
       - http:
           path: trials/all
           method: get
-
+  createTrial:
+    handler: functions/trials.createTrial
+    timeout: 30
+    events:
+      - http:
+          path: trials
+          method: post
   deleteTrial:
     handler: functions/trials.deleteTrial
     timeout: 30

@@ -1,7 +1,7 @@
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-const insertTrial = require('../../../functions/insertTrial');
+const trialsFunction = require('../../../functions/trials');
 const TrialIdsInserter = require('../../../src/TrialIdsInserter');
 
 describe('insertTrial', () => {
@@ -30,11 +30,11 @@ describe('insertTrial', () => {
       const context = {};
       const callback = () => {};
       const expectedResponseBody = JSON.stringify({
-        trialsReceived: trialIds.length,
-        trialsInserted: trialIds.length,
+        results_count: trialIds.length,
+        results: [true, true],
       });
 
-      const response = await insertTrial.handle(event, context, callback);
+      const response = await trialsFunction.createTrial(event, context, callback);
 
       expect(response.statusCode).to.eq(200);
       expect(response.body).to.eq(expectedResponseBody);
@@ -50,13 +50,13 @@ describe('insertTrial', () => {
       const event = {};
       const context = {};
 
-      const response = await insertTrial.handle(event, context);
+      const response = await trialsFunction.createTrial(event, context);
 
       expect(response.statusCode).to.eq(400);
       expect(response.body).to.eq(
         JSON.stringify({
-          trialsReceived: 0,
-          trialsInserted: 0,
+          results_count: 0,
+          results: [],
         })
       );
     });
