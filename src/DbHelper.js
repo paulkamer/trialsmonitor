@@ -1,5 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const AWS = require('aws-sdk');
+const { v4: uuidv4 } = require('uuid');
+
 const { logger } = require('../src/lib/logger');
 
 const TABLE_TRIALS = process.env.TRIALS_TABLE;
@@ -25,6 +27,44 @@ class DbHelper {
   }
 
   /**
+   * Proxy for DynamoDB's putItem to prevent duplication
+   *
+   * @param {Object} params
+   */
+  putItem(params) {
+    return new Promise(resolve => {
+      this.db
+        .putItem(params)
+        .promise()
+        .then(() => {
+          resolve(true);
+        })
+        .catch(() => {
+          resolve(false);
+        });
+    });
+  }
+
+  /**
+   * Proxy for DynamoDB's batchWriteItem to prevent duplication
+   * @todo return Promise like in putItem?
+   *
+   * @param {Object} params
+   */
+  async batchWriteItem(params) {
+    let result;
+
+    try {
+      result = await this.db.batchWriteItem(params).promise();
+    } catch(e) {
+      logger.error(e);
+      result = false;
+    }
+
+    return result;
+  }
+
+  /**
    * Insert a new trialId into the trials table.
    */
   insertTrialId(trialId) {
@@ -37,17 +77,7 @@ class DbHelper {
       ConditionExpression: 'attribute_not_exists(id)',
     };
 
-    return new Promise(resolve => {
-      this.db
-        .putItem(params)
-        .promise()
-        .then(() => {
-          resolve(true);
-        })
-        .catch(() => {
-          resolve(false);
-        });
-    });
+    return this.putItem(params);
   }
 
   /**
@@ -69,18 +99,18 @@ class DbHelper {
       do {
         items = await this.db.scan(queryParams).promise();
         items.Items.forEach(trial => {
-          const result = {};
+          // const result = {};
 
-          // Extract values from DB results. Values are stored under the field type
-          // key, i.e. { "id": { "S": "<trial_id>" }}
-          Object.entries(trial).forEach((e) => {
-            result[e[0]] = Object.values(trial[e[0]])[0];
-          });
+          // // Extract values from DB results. Values are stored under the field type
+          // // key, i.e. { "id": { "S": "<trial_id>" }}
+          // Object.entries(trial).forEach((e) => {
+          //   result[e[0]] = Object.values(trial[e[0]])[0];
+          // });
 
-          // Ensure the lastUpdated value is a Number
-          if (trial.lastUpdated) result.lastUpdated = Number(trial.lastUpdated.N) || 0;
+          // // Ensure the lastUpdated value is a Number
+          // if (trial.lastUpdated) result.lastUpdated = Number(trial.lastUpdated.N) || 0;
 
-          trialsById[trial.id.S] = { ...result };
+          trialsById[trial.id.S] = this.normalizeTrial(trial);
         });
 
         queryParams.ExclusiveStartKey = items.LastEvaluatedKey;
@@ -92,6 +122,25 @@ class DbHelper {
     }
 
     return trialsById;
+  }
+
+  /**
+   * 'Normalize' the object properties of a trial.
+   *
+   *  Values are stored under the field type key, i.e. { "id": { "S": "<trial_id>" }}
+   * @param {*} trial
+   */
+  normalizeTrial(trial) {
+    const result = {};
+
+    Object.entries(trial).forEach((e) => {
+      result[e[0]] = Object.values(trial[e[0]])[0];
+    });
+
+    // Ensure the lastUpdated value is a Number
+    if (trial.lastUpdated) result.lastUpdated = Number(trial.lastUpdated.N) || 0;
+
+    return result;
   }
 
   /**
@@ -190,33 +239,19 @@ class DbHelper {
    * @param {Array} List of trialIds
    */
   async deleteTrials(trialIds) {
-    let result;
-    try {
-      const params = {
-        RequestItems: {
-          [TABLE_TRIALS]:
-            trialIds.map(trialId => ({
-              DeleteRequest: {
-                Key: { id: { S: trialId } } ,
-              }
-            }))
-        },
-      };
+    const params = {
+      RequestItems: {
+        [TABLE_TRIALS]:
+          trialIds.map(trialId => ({
+            DeleteRequest: {
+              Key: { id: { S: trialId } },
+            }
+          }))
+      },
+    };
 
-      result = await this.db.batchWriteItem(params).promise();
-    } catch (e) {
-      logger.error(e);
-      return false;
-    }
-
-    try {
-      return result;
-    } catch (e) {
-      logger.error(e);
-      return false;
-    }
+    return this.batchWriteItem(params);
   }
-
 
   /**
    * Returns all trialId's stored in the "trials" table
@@ -258,6 +293,50 @@ class DbHelper {
     }
 
     return searchQueries;
+  }
+
+
+  /**
+   * Insert a new search query into the trialsearches table.
+   */
+  insertSearchQuery(searchQuery) {
+    const params = {
+      TableName: TABLE_SEARCHES,
+      Item: {
+        id: { S: uuidv4() },
+        query: { S: searchQuery },
+      },
+      ConditionExpression: 'attribute_not_exists(id)',
+    };
+
+    return this.putItem(params);
+  }
+
+  /**
+   * Delete trial search records by id
+   * @param {Array} List of trial search Ids
+   */
+  async deleteSearchQueries(trialSearchIds) {
+      const params = {
+        RequestItems: {
+          [TABLE_SEARCHES]:
+          trialSearchIds.map(id => ({
+              DeleteRequest: {
+                Key: { id: { S: id } } ,
+              }
+            }))
+        },
+      };
+
+      return this.batchWriteItem(params);
+  }
+
+  /**
+   * Delete a trial search record by id
+   * @param {String} trial search Ids
+   */
+  async deleteSearchQuery(trialSearchId) {
+    return await this.deleteSearchQueries([trialSearchId]);
   }
 }
 

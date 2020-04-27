@@ -34,7 +34,7 @@ provider:
     DYNAMODB_API_VERSION: '2012-08-10'
     DYNAMODB_DEV_ENDPOINT: ${self:custom.dynamodb.dev_endpoint}
     TRIALS_TABLE: 'trials_${self:provider.stage}'
-    SEARCHES_TABLE: 'searches_${self:provider.stage}'
+    SEARCHES_TABLE: 'trialsearches_${self:provider.stage}'
     EMAIL_FROM_ADDRESS: ${self:custom.secrets.EMAIL_FROM_ADDRESS}
     EMAIL_TO_ADDRESS: ${self:custom.secrets.EMAIL_TO_ADDRESS}
 
@@ -69,6 +69,16 @@ functions:
   updatesNotifier:
     handler: src/functions/updatesNotifier.handle
 
+# trial API functions
+  fetchTrial:
+    handler: src/functions/api/trials.get
+    timeout: 10
+    events:
+      - http:
+          path: trials/{id}
+          cors: true
+          method: get
+          authorizer: aws_iam
   listTrials:
     handler: src/functions/api/trials.getAll
     timeout: 10
@@ -94,6 +104,41 @@ functions:
       - http:
           path: trials
           method: delete
+          cors: true
+
+# trial searches API functions
+  listTrialSearches:
+    handler: src/functions/api/trialSearches.getAll
+    timeout: 10
+    events:
+      - http:
+          path: trial_search/all
+          cors: true
+          method: get
+          authorizer: aws_iam
+  createTrialSearch:
+    handler: src/functions/api/trialSearches.createTrialSearch
+    timeout: 10
+    events:
+      - http:
+          path: trial_search
+          method: post
+          cors: true
+          integration: lambda
+          authorizer: aws_iam
+  deleteTrialSearch:
+    handler: src/functions/api/trialSearches.deleteTrialSearch
+    timeout: 10
+    events:
+      - http:
+          path: trial_search/{id}
+          method: delete
+          cors: true
+          authorizer: aws_iam
+          request:
+            parameters:
+              paths:
+                id: true
 
 stepFunctions:
   stateMachines:
@@ -195,7 +240,7 @@ resources: # CloudFormation template syntax
           WriteCapacityUnits: 2
         StreamSpecification:
           StreamViewType: NEW_IMAGE
-    SearchesTable:
+    TrialSearchesTable:
       Type: AWS::DynamoDB::Table
       DeletionPolicy: Delete
       Properties:
