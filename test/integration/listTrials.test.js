@@ -14,7 +14,7 @@ describe('trialsFunction', () => {
 
   context('getAll', async () => {
     it('Lists the trials that are in the DB', async () => {
-      const response = await trialsFunction.getAll();
+      const response = await trialsFunction.getAll({});
 
       expect(response.statusCode).to.eq(200);
 

@@ -83,19 +83,21 @@ class DbHelper {
   /**
    * Returns all trialId's stored in the "trials" table
    */
-  async listTrials(attributesToGet = ['id', 'lastUpdated']) {
+  async listTrials(attributesToGet = ['id', 'lastUpdated'], { orderBy, sortDirection, limit } = {}) {
+    // query at most 100 objects per db.scan operation, because of response size limit of 1MB
+    const batchLimit = Math.min(...[100, (limit || 100)]);
+
     const queryParams = {
       TableName: TABLE_TRIALS,
       Select: 'SPECIFIC_ATTRIBUTES',
       AttributesToGet: attributesToGet,
-      Limit: 100,
+      Limit: batchLimit,
     };
 
     const trialsById = {};
     let items;
     try {
-      // Loop until all items have been returned. DynamoDB has a limit of 1MB, so
-      // will not return all 100 rows in a single pass
+      // Loop until all items have been returned.
       do {
         items = await this.db.scan(queryParams).promise();
         items.Items.forEach(trial => {
@@ -103,14 +105,30 @@ class DbHelper {
         });
 
         queryParams.ExclusiveStartKey = items.LastEvaluatedKey;
-      } while (typeof items.LastEvaluatedKey !== 'undefined');
+      } while (typeof items.LastEvaluatedKey !== 'undefined' && (!limit || Object.keys(trialsById).length < limit));
     } catch (e) {
       logger.error(e);
 
       return {};
     }
 
-    return trialsById;
+    // Sort trials by orderBy column
+    let sortedTrialsById;
+    if (orderBy && attributesToGet.includes(orderBy)) {
+      sortedTrialsById = {};
+      const sortIndexA = (sortDirection === 'asc') ? -1 : 1;
+      const sortIndexB = sortIndexA - (sortIndexA * 2); // inverse of sortIndexA
+
+      const trials = Object.values(trialsById).sort((a, b) => {
+        return a[orderBy] < b[orderBy] ? sortIndexA : sortIndexB;
+      });
+
+      trials.forEach(t => {
+        sortedTrialsById[t.id] = t;
+      });
+    }
+
+    return sortedTrialsById || trialsById;
   }
 
   /**

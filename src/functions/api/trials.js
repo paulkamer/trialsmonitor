@@ -29,10 +29,20 @@ const get = async (event) => {
  * @todo support requesting specific attributes of trials
  * @param {*} event
  */
-const getAll = async () => {
+const getAll = async (event) => {
   logger.log('info', 'trials.getAll');
 
-  const trials = await new DbHelper().listTrials(['id','title','lastUpdated','phase']);
+  let limit = null;
+  try {
+    if (event.query && event.query.limit) {
+      limit = Number(event.query.limit);
+      if (limit <= 0) limit = null;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  const trials = await new DbHelper().listTrials(['id','title','lastUpdated','phase'], { orderBy: 'lastUpdated', sortDirection: 'desc', limit });
 
   // Format & send response
   return formatResponse(trials);
