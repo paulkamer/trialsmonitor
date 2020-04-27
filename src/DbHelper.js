@@ -99,17 +99,6 @@ class DbHelper {
       do {
         items = await this.db.scan(queryParams).promise();
         items.Items.forEach(trial => {
-          // const result = {};
-
-          // // Extract values from DB results. Values are stored under the field type
-          // // key, i.e. { "id": { "S": "<trial_id>" }}
-          // Object.entries(trial).forEach((e) => {
-          //   result[e[0]] = Object.values(trial[e[0]])[0];
-          // });
-
-          // // Ensure the lastUpdated value is a Number
-          // if (trial.lastUpdated) result.lastUpdated = Number(trial.lastUpdated.N) || 0;
-
           trialsById[trial.id.S] = this.normalizeTrial(trial);
         });
 
