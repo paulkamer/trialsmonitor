@@ -1,4 +1,4 @@
-const OutdatedTrialsChecker = require('../src/OutdatedTrialsChecker');
+const OutdatedTrialsChecker = require('../OutdatedTrialsChecker');
 const { logger } = require('../lib/logger');
 
 /**

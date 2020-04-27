@@ -1,4 +1,4 @@
-const UpdatesNotifier = require('../src/UpdatesNotifier');
+const UpdatesNotifier = require('../UpdatesNotifier');
 const { logger } = require('../lib/logger');
 
 /**

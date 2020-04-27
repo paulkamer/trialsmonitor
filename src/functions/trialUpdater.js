@@ -1,4 +1,4 @@
-const TrialUpdater = require('../src/TrialUpdater');
+const TrialUpdater = require('../TrialUpdater');
 const { logger } = require('../lib/logger');
 
 /**

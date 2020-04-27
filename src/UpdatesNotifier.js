@@ -2,7 +2,7 @@
 const aws = require('aws-sdk');
 
 const DbHelper = require('./DbHelper');
-const { logger } = require('../lib/logger');
+const { logger } = require('../src/lib/logger');
 
 const LINE_END_TXT = '\n';
 const LINE_END_HTML = '<br/>';

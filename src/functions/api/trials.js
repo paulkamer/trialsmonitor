@@ -1,6 +1,27 @@
-const TrialIdsInserter = require('../../src/TrialIdsInserter');
-const DbHelper = require('../../src/DbHelper');
+const TrialIdsInserter = require('../../TrialIdsInserter');
+const DbHelper = require('../../DbHelper');
 const { logger } = require('../../lib/logger');
+
+/**
+ * Get a single trial
+ *
+ * @param {*} event
+ */
+const get = async (event) => {
+  logger.log('info', 'trials.get');
+
+  const trialId = event.pathParameters.id;
+
+  const results = [];
+
+  if (trialId) {
+    const db = new DbHelper();
+    const trial = await db.fetchTrial(trialId);
+    if (trial) results.push(db.normalizeTrial(trial));
+  }
+
+  return formatResponse(results);
+};
 
 /**
  * List trials
@@ -103,6 +124,10 @@ function formatResponse(results) {
 
   const response = {
     statusCode,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true,
+    },
     body: JSON.stringify({
       results_count: Object.keys(results).length,
       results: Object.values(results),
@@ -112,4 +137,4 @@ function formatResponse(results) {
   return response;
 }
 
-module.exports = { getAll, createTrial, deleteTrial };
+module.exports = { get, getAll, createTrial, deleteTrial };

@@ -1,4 +1,4 @@
-const DbHelper = require('../../src/DbHelper');
+const DbHelper = require('../../DbHelper');
 const { logger } = require('../../lib/logger');
 
 /**
@@ -54,7 +54,7 @@ const createTrialSearch = async (event) => {
 const deleteTrialSearch = async (event) => {
   logger.info('trialSearches#deleteTrialSearch');
 
-  const id = extractIdFromEvent(event);
+  const id = event.pathParameters.id;
 
   if (!id) {
     logger.error(new Error('No id found'));
@@ -68,28 +68,6 @@ const deleteTrialSearch = async (event) => {
 
   return formatResponse(results);
 };
-
-/**
- * Extract the trial search ID from the event.
- *
- * @param {Object|String} event
- */
-function extractIdFromEvent(event) {
-  let trialSearchId;
-  try {
-    if (typeof event.body === 'string') {
-      trialSearchId = JSON.parse(event.body).trialSearchId;
-    } else if (event.body && event.body.trialSearchId) {
-      trialSearchId = event.body.trialSearchId;
-    } else {
-      throw new Error('Cannot parse event body');
-    }
-  } catch (e) {
-    logger.error(e);
-  }
-
-  return trialSearchId;
-}
 
 /**
  * Fetch trials from the DB
@@ -110,6 +88,10 @@ function formatResponse(results = []) {
 
   const response = {
     statusCode,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true,
+    },
     body: JSON.stringify({
       results_count: results.length,
       results,

@@ -1,4 +1,4 @@
-const NewTrialsSearcher = require('../src/NewTrialsChecker');
+const NewTrialsSearcher = require('../NewTrialsChecker');
 const { logger } = require('../lib/logger');
 
 /**

@@ -56,36 +56,39 @@ package:
 
 functions:
   newTrialsChecker:
-    handler: functions/newTrialsChecker.handle
+    handler: src/functions/newTrialsChecker.handle
     timeout: 30
 
   outdatedTrialsChecker:
-    handler: functions/outdatedTrialsChecker.handle
+    handler: src/functions/outdatedTrialsChecker.handle
 
   trialUpdater:
-    handler: functions/trialUpdater.handle
+    handler: src/functions/trialUpdater.handle
     timeout: 10
 
   updatesNotifier:
-    handler: functions/updatesNotifier.handle
-
+    handler: src/functions/updatesNotifier.handle
 
   listTrials:
-    handler: functions/api/trials.getAll
+    handler: src/functions/api/trials.getAll
     timeout: 10
     events:
       - http:
           path: trials/all
+          cors: true
           method: get
+          integration: lambda
+          authorizer: aws_iam
   createTrial:
-    handler: functions/api/trials.createTrial
+    handler: src/functions/api/trials.createTrial
     timeout: 30
     events:
       - http:
           path: trials
           method: post
+          cors: true
   deleteTrial:
-    handler: functions/api/trials.deleteTrial
+    handler: src/functions/api/trials.deleteTrial
     timeout: 30
     events:
       - http:

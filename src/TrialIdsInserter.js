@@ -1,5 +1,5 @@
 const DbHelper = require('./DbHelper');
-const { logger } = require('../lib/logger');
+const { logger } = require('../src/lib/logger');
 
 /**
  * Handler for inserting trial IDs, for new trials to monitor

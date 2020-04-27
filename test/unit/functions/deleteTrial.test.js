@@ -1,7 +1,7 @@
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-const trialFunction = require('../../../functions/api/trials');
+const trialFunction = require('../../../src/functions/api/trials');
 const DbHelper = require('../../../src/DbHelper');
 
 describe('deleteTrial', () => {

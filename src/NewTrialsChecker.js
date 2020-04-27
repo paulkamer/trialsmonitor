@@ -1,7 +1,7 @@
 const DbHelper = require('./DbHelper');
 const ClinicalTrialsApi = require('./ClinicalTrialsApi');
 const TrialIdsInserter = require('./TrialIdsInserter');
-const { logger } = require('../lib/logger');
+const { logger } = require('../src/lib/logger');
 
 /**
  * Find new trials, using stored search queries in the searchqueries_<env> DB table.

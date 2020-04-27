@@ -1,7 +1,7 @@
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-const trialsFunction = require('../../../functions/api/trials');
+const trialsFunction = require('../../../src/functions/api/trials');
 const TrialIdsInserter = require('../../../src/TrialIdsInserter');
 
 describe('insertTrial', () => {

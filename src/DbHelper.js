@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const AWS = require('aws-sdk');
-const { logger } = require('../lib/logger');
+const { logger } = require('../src/lib/logger');
 
 const TABLE_TRIALS = process.env.TRIALS_TABLE;
 const TABLE_SEARCHES = process.env.SEARCHES_TABLE;

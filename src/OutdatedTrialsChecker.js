@@ -1,6 +1,6 @@
 const DbHelper = require('./DbHelper');
 const ClinicalTrialsApi = require('./ClinicalTrialsApi');
-const { logger } = require('../lib/logger');
+const { logger } = require('../src/lib/logger');
 
 class OutdatedTrialsChecker {
   /**

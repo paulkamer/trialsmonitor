@@ -3,7 +3,7 @@ require('dotenv').config({path: `${__dirname}/../../.env.test`});
 const expect = require('chai').expect;
 const { spawnSync } = require( 'child_process' );
 
-const trialsFunction = require('../../functions/api/trials');
+const trialsFunction = require('../../src/functions/api/trials');
 const DbHelper = require('../../src/DbHelper');
 
 describe('trialsFunction', () => {
