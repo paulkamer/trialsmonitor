@@ -75,6 +75,8 @@ class UpdatesNotifier {
   formatBody({ trials, lineEnd }) {
     let body = `Hello, we found ${trials.length} updated trials:${lineEnd.repeat(2)}`;
 
+    body += `https://trialsmonitor.com/trials${lineEnd.repeat(2)}`
+
     const formatTrialLines = this.formatTrialLines({ trials, lineEnd });
 
     body += formatTrialLines.join(lineEnd.repeat(2));
