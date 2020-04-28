@@ -22,11 +22,14 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
         - dynamodb:BatchGetItem
-      Resource: 'arn:aws:dynamodb:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:table/*'
+        - dynamodb:BatchWriteItem
+      Resource:
+        - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:table/${self:provider.environment.TRIALS_TABLE}'
+        - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:table/${self:provider.environment.SEARCHES_TABLE}'
     - Effect: Allow
       Action:
         - ses:SendEmail
-      Resource: 'arn:aws:ses:eu-central-1:${self:custom.secrets.ACCOUNT_ID}:identity/*'
+      Resource: 'arn:aws:ses:eu-central-1:${self:custom.secrets.ACCOUNT_ID}:identity/${self:custom.secrets.EMAIL_TO_ADDRESS}'
 
   environment:
     STAGE: ${self:provider.stage}
