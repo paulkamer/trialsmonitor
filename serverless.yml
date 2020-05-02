@@ -29,7 +29,7 @@ provider:
     - Effect: Allow
       Action:
         - ses:SendEmail
-      Resource: 'arn:aws:ses:eu-central-1:${self:custom.secrets.ACCOUNT_ID}:identity/${self:custom.secrets.EMAIL_TO_ADDRESS}'
+      Resource: 'arn:aws:ses:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:identity/${self:custom.secrets.EMAIL_TO_ADDRESS}'
 
   environment:
     STAGE: ${self:provider.stage}
@@ -271,7 +271,7 @@ custom:
       - prod
     region:
       dev: localhost
-      prod: eu-central-1
+      prod: ${self:provider.region}
     dev_endpoint: http://localhost:${self:custom.dynamodb.start.port}
     start:
       port: 8000
