@@ -8,7 +8,7 @@ const DbHelper = require('../../src/DbHelper');
 const ClinicalTrialsApi = require('./../../src/ClinicalTrialsApi');
 const TrialUpdater = require('../../src/TrialUpdater');
 
-describe('insertTrial', () => {
+describe('TrialUpdater', () => {
   // (re-)seed the local DB
   beforeEach(() =>{
     spawnSync( '/usr/bin/serverless', [ 'dynamodb', 'seed' ] );
@@ -30,6 +30,7 @@ describe('insertTrial', () => {
         },
         StatusModule: {
           OverallStatus: 'Completed',
+          LastUpdateSubmitDate: 'August 11, 2010',
         },
       },
     },
@@ -53,6 +54,7 @@ describe('insertTrial', () => {
     it('Successfully updates a trial', async () => {
       const oldTrial = await dbHelper.fetchTrial(testTrialId);
       expect(oldTrial.studyStatus.S).to.eq('In progress');
+      expect(oldTrial.lastUpdated.N).to.eq('1');
 
       updater = new TrialUpdater();
       const result = await updater.updateTrial(testTrialId);
@@ -61,6 +63,7 @@ describe('insertTrial', () => {
 
       const updatedTrial = await dbHelper.fetchTrial(testTrialId);
       expect(updatedTrial.studyStatus.S).to.eq('Completed');
+      expect(updatedTrial.lastUpdated.N).to.eq('1281477600'); // unix timestamp of "August 11, 2010"
     });
 
     after(() => {
