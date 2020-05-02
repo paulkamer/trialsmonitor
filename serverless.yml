@@ -61,16 +61,20 @@ functions:
   newTrialsChecker:
     handler: src/functions/newTrialsChecker.handle
     timeout: 30
+    onError: arn:aws:sns:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:trialmonitor-lambda-dlq
 
   outdatedTrialsChecker:
     handler: src/functions/outdatedTrialsChecker.handle
+    onError: arn:aws:sns:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:trialmonitor-lambda-dlq
 
   trialUpdater:
     handler: src/functions/trialUpdater.handle
     timeout: 10
+    onError: arn:aws:sns:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:trialmonitor-lambda-dlq
 
   updatesNotifier:
     handler: src/functions/updatesNotifier.handle
+    onError: arn:aws:sns:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:trialmonitor-lambda-dlq
 
 # trial API functions
   fetchTrial:
