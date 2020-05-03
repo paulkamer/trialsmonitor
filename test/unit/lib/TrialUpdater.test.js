@@ -74,14 +74,4 @@ describe('TrialUpdater', () => {
       expect(result.studyStatus).to.eq('?');
     });
   });
-
-  context('determineDiff', () => {
-    it('Determines the diff between 2 version of the trial', () => {
-      updater = new TrialUpdater();
-      const result = updater.determineDiff(trial1, trial2);
-
-      expect(result).to.include('title');
-      expect(result).to.not.include('Acronym');
-    });
-  });
 });

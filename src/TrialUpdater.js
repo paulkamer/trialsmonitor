@@ -13,16 +13,6 @@ class TrialUpdater {
     const newTrial = await api.fetchTrial(trialId);
     if (!newTrial || !newTrial.Study) return false;
 
-    const currentTrial = await db.fetchTrial(trialId);
-    if (!currentTrial) return false;
-
-    let currentTrialJson;
-    try {
-      currentTrialJson = JSON.parse(currentTrial.trial.S);
-    } catch (e) {
-      logger.error(e);
-    }
-
     const attributesToUpdate = this.extractAttributes(newTrial);
     attributesToUpdate.trial = newTrial;
 
@@ -30,8 +20,6 @@ class TrialUpdater {
     if (!attributesToUpdate.lastUpdated || attributesToUpdate.lastUpdated === '?') {
       attributesToUpdate.lastUpdated = Math.round(new Date().getTime() / 1000);
     }
-
-    attributesToUpdate.diff = this.determineDiff(currentTrialJson, newTrial);
 
     // Update the record in the DB & return result.
     return await db.updateTrial(trialId, attributesToUpdate);
@@ -67,25 +55,6 @@ class TrialUpdater {
     }
 
     return { title, acronym, phase, studyStatus, lastUpdated };
-  }
-
-  /**
-   * Determine the diff between the current and new version of the trial, using
-   * json-diff
-   *
-   * @param {*} currentTrial
-   * @param {*} newTrial
-   */
-  determineDiff(currentTrial, newTrial) {
-    let diff = '-';
-
-    try {
-      diff = jsonDiff.diffString(currentTrial, newTrial) || '-';
-    } catch (e) {
-      logger.error(e);
-    }
-
-    return diff;
   }
 }
 

@@ -211,14 +211,14 @@ class DbHelper {
    * @param {String} trialId
    * @param {Object}
    */
-  async updateTrial(trialId, { trial, title, acronym, phase, studyStatus, lastUpdated, diff }) {
+  async updateTrial(trialId, { trial, title, acronym, phase, studyStatus, lastUpdated }) {
     const params = {
       TableName: TABLE_TRIALS,
       Key: {
         id: { S: trialId },
       },
       UpdateExpression:
-        'SET title = :title, acronym = :acronym, phase = :phase, studyStatus = :studyStatus, trial = :trial, prevTrial = if_not_exists(trial, :prevTrialFallback), diff = :diff, lastUpdated = :lastUpdated',
+        'SET title = :title, acronym = :acronym, phase = :phase, studyStatus = :studyStatus, trial = :trial, prevTrial = if_not_exists(trial, :prevTrialFallback), lastUpdated = :lastUpdated',
       ExpressionAttributeValues: {
         ':title': { S: title },
         ':acronym': { S: acronym },
@@ -226,7 +226,6 @@ class DbHelper {
         ':studyStatus': { S: studyStatus },
         ':trial': { S: JSON.stringify(trial) },
         ':lastUpdated': { N: String(lastUpdated) },
-        ':diff': { S: diff },
         ':prevTrialFallback': { S: '{}' },
       },
     };
