@@ -27,7 +27,9 @@ provider:
     - Effect: Allow
       Action:
         - ses:SendEmail
-      Resource: 'arn:aws:ses:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:identity/${self:custom.secrets.EMAIL_TO_ADDRESS}'
+      Resource:
+        - 'arn:aws:ses:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:identity/${self:custom.secrets.EMAIL_TO_ADDRESS}'
+        - 'arn:aws:ses:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:identity/${self:custom.secrets.SES_FROM_IDENTITY}'
 
   environment:
     STAGE: ${self:provider.stage}
