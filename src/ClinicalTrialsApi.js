@@ -14,7 +14,7 @@ class ClinicalTrialsApi {
     if (nctIds.length === 0) return [];
 
     // Fields to return
-    const fields = ['NCTId', 'LastUpdatePostDate', 'LastUpdateSubmitDate'].join(',');
+    const fields = ['NCTId', 'LastUpdateSubmitDate'].join(',');
     const expression = encodeURI(nctIds.join(' OR '));
 
     return this.findTrials(expression, fields);

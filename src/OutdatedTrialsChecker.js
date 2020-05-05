@@ -24,7 +24,7 @@ class OutdatedTrialsChecker {
    * Determine which trials are outdated in our database.
    *
    * @param {*} trialsById Trials in our database indexed by id
-   * @param {Array} trials list of trials from clinicaltrials.gov with their LastUpdatePostDate
+   * @param {Array} trials list of trials from clinicaltrials.gov with their LastUpdateSubmitDate
    */
   determineOutdatedTrials(trialsById, trials) {
     const outdatedTrials = [];
@@ -35,8 +35,8 @@ class OutdatedTrialsChecker {
       try {
         trialId = trial.NCTId[0];
 
-        // Convert 'LastUpdatePostDate' (format "January 23, 2020") to UNIX timestamp
-        const lastUpdatePosted = new Date(trial.LastUpdatePostDate[0]).getTime() / 1000;
+        // Convert 'LastUpdateSubmitDate' (format "January 23, 2020") to UNIX timestamp
+        const lastUpdatePosted = new Date(trial.LastUpdateSubmitDate[0]).getTime() / 1000;
 
         isOutdated = trialsById[trialId].lastUpdated < lastUpdatePosted;
       } catch (e) {

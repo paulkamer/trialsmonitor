@@ -104,7 +104,7 @@ class UpdatesNotifier {
 
       return [
         `${title} (${acronym})`,
-        `<a href="${CLINICALTRIALS_SHOW_BASE_URL}/${trial.id.S}" target="_blank">${trial.id.S}</a> (<a href="${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.id.S}" target="_blank">history</a>) - ${phase} - ${studyStatus}`,
+        `${trial.id.S} <a href="${CLINICALTRIALS_SHOW_BASE_URL}/${trial.id.S}" target="_blank">ClinicalTrials.gov record</a> (<a href="${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.id.S}" target="_blank">history</a>) - ${phase} - ${studyStatus}`,
       ].join(lineEnd);
     });
   }

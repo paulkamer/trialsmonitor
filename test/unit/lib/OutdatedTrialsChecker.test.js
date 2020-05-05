@@ -40,7 +40,7 @@ describe('OutdatedTrialsChecker', () => {
   const trials = [
     {
       NCTId: Object.keys(testTrials),
-      LastUpdatePostDate: Object.entries(testTrials).map(([, trial]) => trial.new),
+      LastUpdateSubmitDate: Object.entries(testTrials).map(([, trial]) => trial.new),
     },
   ];
 
