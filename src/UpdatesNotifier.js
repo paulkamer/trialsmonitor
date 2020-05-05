@@ -75,7 +75,7 @@ class UpdatesNotifier {
   formatBody({ trials, lineEnd }) {
     let body = `Hello, we found ${trials.length} updated trials:${lineEnd.repeat(2)}`;
 
-    body += `https://trialsmonitor.com/trials${lineEnd.repeat(2)}`
+    body += `https://trialsmonitor.com/trials${lineEnd.repeat(2)}`;
 
     const formatTrialLines = this.formatTrialLines({ trials, lineEnd });
 
@@ -86,24 +86,26 @@ class UpdatesNotifier {
 
   /**
    * Format a line for each updated trial, for the email body
-   * @param {*} param0
    */
   formatTrialLines({ trials, lineEnd }) {
     return trials.map(trial => {
       const phase = (trial.phase && trial.phase.S) || '?';
       const studyStatus = (trial.studyStatus && trial.studyStatus.S) || '?';
-      const title = (trial.title && trial.title.S) || '?';
-      const acronym = (trial.acronym && trial.acronym.S) || '?';
+
+      let title = (trial.title && trial.title.S) || '?';
+      if (trial.acronym && trial.acronym.S) {
+        title += ` (${trial.acronym.S})`;
+      }
 
       if (lineEnd === LINE_END_TXT) {
         return [
-          `${title} (${acronym}) ${phase} - ${studyStatus}`,
+          `${title} ${phase} - ${studyStatus}`,
           `${CLINICALTRIALS_SHOW_BASE_URL}/${trial.id.S} | ${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.id.S}`,
         ].join(lineEnd);
       }
 
       return [
-        `${title} (${acronym})`,
+        title,
         `${trial.id.S} <a href="${CLINICALTRIALS_SHOW_BASE_URL}/${trial.id.S}" target="_blank">ClinicalTrials.gov record</a> (<a href="${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.id.S}" target="_blank">history</a>) - ${phase} - ${studyStatus}`,
       ].join(lineEnd);
     });
