@@ -218,15 +218,13 @@ class DbHelper {
         id: { S: trialId },
       },
       UpdateExpression:
-        'SET title = :title, acronym = :acronym, phase = :phase, studyStatus = :studyStatus, trial = :trial, prevTrial = if_not_exists(trial, :prevTrialFallback), lastUpdated = :lastUpdated',
+        'SET title = :title, acronym = :acronym, phase = :phase, studyStatus = :studyStatus, lastUpdated = :lastUpdated',
       ExpressionAttributeValues: {
         ':title': { S: title },
         ':acronym': { S: acronym },
         ':phase': { S: phase },
         ':studyStatus': { S: studyStatus },
-        ':trial': { S: JSON.stringify(trial) },
         ':lastUpdated': { N: String(lastUpdated) },
-        ':prevTrialFallback': { S: '{}' },
       },
     };
 
