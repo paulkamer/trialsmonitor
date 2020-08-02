@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:4.4.0
+    command: [--auth]
+    ports:
+      - '27017:27017'

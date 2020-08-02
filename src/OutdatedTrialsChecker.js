@@ -1,4 +1,4 @@
-const DbHelper = require('./DbHelper');
+const DbHelper = require('./helpers/Db');
 const ClinicalTrialsApi = require('./ClinicalTrialsApi');
 const { logger } = require('../src/lib/logger');
 
@@ -9,10 +9,13 @@ class OutdatedTrialsChecker {
    */
   async listOutdatedTrials() {
     const db = new DbHelper();
+    await db.connect();
+
     const api = new ClinicalTrialsApi();
 
     // Fetch all trials, grouped by id, with the lastUpdated timestamp from dynamodb
     const trialsById = await db.listTrials();
+    db.disconnect();
 
     // Fetch the LastUpdateSubmitDate for all trials
     const trials = await api.listTrialsForUpdateCheck(Object.keys(trialsById));

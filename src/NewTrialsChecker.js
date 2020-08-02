@@ -1,4 +1,3 @@
-const DbHelper = require('./DbHelper');
 const ClinicalTrialsApi = require('./ClinicalTrialsApi');
 const TrialIdsInserter = require('./TrialIdsInserter');
 const { logger } = require('../src/lib/logger');
@@ -14,8 +13,9 @@ const { logger } = require('../src/lib/logger');
  * 6. Add new NCTId's to our DB
  */
 class NewTrialsChecker {
-  constructor() {
-    this.db = new DbHelper();
+  constructor(db) {
+    this.db = db;
+
     this.clinicalTrialsApi = new ClinicalTrialsApi();
     this.trialIdsInserter = new TrialIdsInserter();
   }
@@ -35,7 +35,9 @@ class NewTrialsChecker {
     const allUniqueNctIds = this.uniqueNctIds(allNctIdsForSearchQueries);
 
     // Fetch all trials we have
-    const currentNctIds = Object.keys(await this.db.listTrials());
+    const trials = await this.db.listTrials();
+
+    const currentNctIds = trials.map(t => t.trialId);
 
     // Check if there are new trials
     const newNctIds = this.determineMissingNctIds(allUniqueNctIds, currentNctIds);
@@ -89,7 +91,7 @@ class NewTrialsChecker {
    * @param {Array} nctIds
    */
   uniqueNctIds(nctIds) {
-    return[...new Set(nctIds)];
+    return [...new Set(nctIds)];
   }
 
   /**
@@ -99,7 +101,7 @@ class NewTrialsChecker {
    * @param {Array} allUniqueNctIds
    * @param {Array} currentNctIds
    */
-  determineMissingNctIds (allUniqueNctIds, currentNctIds) {
+  determineMissingNctIds(allUniqueNctIds, currentNctIds) {
     return allUniqueNctIds.filter(id => !currentNctIds.includes(id));
   }
 }

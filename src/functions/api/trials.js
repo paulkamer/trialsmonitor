@@ -1,5 +1,5 @@
 const TrialIdsInserter = require('../../TrialIdsInserter');
-const DbHelper = require('../../DbHelper');
+const DbHelper = require('../../helpers/Db');
 const { logger } = require('../../lib/logger');
 
 /**
@@ -7,7 +7,7 @@ const { logger } = require('../../lib/logger');
  *
  * @param {*} event
  */
-const get = async (event) => {
+const get = async event => {
   logger.log('info', 'trials.get');
 
   const trialId = event.pathParameters.id;
@@ -16,7 +16,11 @@ const get = async (event) => {
 
   if (trialId) {
     const db = new DbHelper();
+    await db.connect();
+
     const trial = await db.fetchTrial(trialId);
+    db.disconnect();
+
     if (trial) results.push(db.normalizeTrial(trial));
   }
 
@@ -29,7 +33,7 @@ const get = async (event) => {
  * @todo support requesting specific attributes of trials
  * @param {*} event
  */
-const getAll = async (event) => {
+const getAll = async event => {
   logger.log('info', 'trials.getAll');
 
   let limit = null;
@@ -42,7 +46,15 @@ const getAll = async (event) => {
     console.error(e);
   }
 
-  const trials = await new DbHelper().listTrials(['id','title','lastUpdated','phase'], { orderBy: 'lastUpdated', sortDirection: 'desc', limit });
+  const db = new DbHelper();
+  await db.connect();
+
+  const trials = await db.listTrials(['trialId', 'title', 'lastUpdated', 'phase'], {
+    orderBy: 'lastUpdated',
+    sortDirection: 'desc',
+    limit,
+  });
+  db.disconnect();
 
   // Format & send response
   return formatResponse(trials);
@@ -83,23 +95,65 @@ const createTrial = async event => {
 };
 
 /**
- * Delete a trial
+ * Insert a new trialId(s) into the trials table in DynamoDB, to start monitoring it.
  *
  * @param {*} event
  */
-const deleteTrial = async (event) => {
-  const trialId = extractTrialIdFromEvent(event);
+const updateTrial = async event => {
+  let trial;
 
-  let results = [];
+  const trialId = event.pathParameters.id;
 
-  if (trialId) {
+  // Determine the trialIds to update.
+  try {
+    if (typeof event.body === 'string') {
+      trial = JSON.parse(event.body).trial;
+    } else if (event.body && event.body.trial) {
+      trial = event.body.trial;
+    } else {
+      throw new Error('Cannot parse event body');
+    }
+  } catch (e) {
+    logger.error(e);
+  }
+
+  const results = [];
+  if (!trial) {
+    logger.debug('[functionInsertTrial] No trial IDs received');
+  } else {
     const db = new DbHelper();
+    await db.connect();
 
-    results = await db.deleteTrials([trialId]);
+    const result = await db.updateTrial(trialId, trial);
+
+    db.disconnect();
+
+    results.push(result);
   }
 
   // Format & send response
   return formatResponse(results);
+};
+
+/**
+ * Delete a trial
+ *
+ * @param {*} event
+ */
+const deleteTrial = async event => {
+  const trialId = extractTrialIdFromEvent(event);
+
+  let results = 0;
+  if (trialId) {
+    const db = new DbHelper();
+    await db.connect();
+
+    results = await db.deleteTrials([trialId]);
+    db.disconnect();
+  }
+
+  // Format & send response
+  return formatResponse(Array(results).fill(true));
 };
 
 /**
@@ -147,4 +201,4 @@ function formatResponse(results) {
   return response;
 }
 
-module.exports = { get, getAll, createTrial, deleteTrial };
+module.exports = { get, getAll, createTrial, updateTrial, deleteTrial };

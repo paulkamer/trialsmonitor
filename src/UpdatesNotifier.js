@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const aws = require('aws-sdk');
 
-const DbHelper = require('./DbHelper');
+const DbHelper = require('./helpers/Db');
 const { logger } = require('../src/lib/logger');
 
 const LINE_END_TXT = '\n';
@@ -41,6 +41,8 @@ class UpdatesNotifier {
 
   async fetchTrials() {
     const db = new DbHelper();
+    await db.connect();
+
     const fetchAttributes = [
       'id',
       'title',
@@ -51,7 +53,11 @@ class UpdatesNotifier {
       'diff',
     ];
 
-    return await db.fetchTrials(this.trialIds, fetchAttributes);
+    const trials = await db.fetchTrials(this.trialIds, fetchAttributes);
+
+    await db.disconnect();
+
+    return trials;
   }
 
   async prepareEmailParameters(trials) {
@@ -89,24 +95,24 @@ class UpdatesNotifier {
    */
   formatTrialLines({ trials, lineEnd }) {
     return trials.map(trial => {
-      const phase = (trial.phase && trial.phase.S) || '?';
-      const studyStatus = (trial.studyStatus && trial.studyStatus.S) || '?';
+      const phase = (trial.phase && trial.phase) || '?';
+      const studyStatus = (trial.studyStatus && trial.studyStatus) || '?';
 
-      let title = (trial.title && trial.title.S) || '?';
-      if (trial.acronym && trial.acronym.S) {
-        title += ` (${trial.acronym.S})`;
+      let title = (trial.title && trial.title) || '?';
+      if (trial.acronym && trial.acronym) {
+        title += ` (${trial.acronym})`;
       }
 
       if (lineEnd === LINE_END_TXT) {
         return [
           `${title} ${phase} - ${studyStatus}`,
-          `${CLINICALTRIALS_SHOW_BASE_URL}/${trial.id.S} | ${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.id.S}`,
+          `${CLINICALTRIALS_SHOW_BASE_URL}/${trial.id} | ${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.id}`,
         ].join(lineEnd);
       }
 
       return [
         title,
-        `${trial.id.S} <a href="${CLINICALTRIALS_SHOW_BASE_URL}/${trial.id.S}" target="_blank">ClinicalTrials.gov record</a> (<a href="${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.id.S}" target="_blank">history</a>) - ${phase} - ${studyStatus}`,
+        `${trial.id} <a href="${CLINICALTRIALS_SHOW_BASE_URL}/${trial.id}" target="_blank">ClinicalTrials.gov record</a> (<a href="${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.id}" target="_blank">history</a>) - ${phase} - ${studyStatus}`,
       ].join(lineEnd);
     });
   }

@@ -2,7 +2,7 @@
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 
-const { logger } = require('../src/lib/logger');
+const { logger } = require('../../lib/logger');
 
 const TABLE_TRIALS = process.env.TRIALS_TABLE;
 const TABLE_SEARCHES = process.env.SEARCHES_TABLE;
@@ -10,7 +10,7 @@ const TABLE_SEARCHES = process.env.SEARCHES_TABLE;
 /**
  * Database helper
  */
-class DbHelper {
+class DynamoDbHelper {
   /**
    * Initialize the DB connection
    */
@@ -24,6 +24,14 @@ class DbHelper {
     if (process.env.STAGE === 'dev') dynamoDbConfig.endpoint = process.env.DYNAMODB_DEV_ENDPOINT;
 
     this.db = new AWS.DynamoDB(dynamoDbConfig);
+  }
+
+  async connect() {
+    // ensure same interface as mongodb
+  }
+
+  async disconnect() {
+    // ensure same interface as mongodb
   }
 
   /**
@@ -56,7 +64,7 @@ class DbHelper {
 
     try {
       result = await this.db.batchWriteItem(params).promise();
-    } catch(e) {
+    } catch (e) {
       logger.error(e);
       result = false;
     }
@@ -83,9 +91,12 @@ class DbHelper {
   /**
    * Returns all trialId's stored in the "trials" table
    */
-  async listTrials(attributesToGet = ['id', 'lastUpdated'], { orderBy, sortDirection, limit } = {}) {
+  async listTrials(
+    attributesToGet = ['id', 'lastUpdated'],
+    { orderBy, sortDirection, limit } = {}
+  ) {
     // query at most 100 objects per db.scan operation, because of response size limit of 1MB
-    const batchLimit = Math.min(...[100, (limit || 100)]);
+    const batchLimit = Math.min(...[100, limit || 100]);
 
     const queryParams = {
       TableName: TABLE_TRIALS,
@@ -105,7 +116,10 @@ class DbHelper {
         });
 
         queryParams.ExclusiveStartKey = items.LastEvaluatedKey;
-      } while (typeof items.LastEvaluatedKey !== 'undefined' && (!limit || Object.keys(trialsById).length < limit));
+      } while (
+        typeof items.LastEvaluatedKey !== 'undefined' &&
+        (!limit || Object.keys(trialsById).length < limit)
+      );
     } catch (e) {
       logger.error(e);
 
@@ -116,8 +130,8 @@ class DbHelper {
     let sortedTrialsById;
     if (orderBy && attributesToGet.includes(orderBy)) {
       sortedTrialsById = {};
-      const sortIndexA = (sortDirection === 'asc') ? -1 : 1;
-      const sortIndexB = sortIndexA - (sortIndexA * 2); // inverse of sortIndexA
+      const sortIndexA = sortDirection === 'asc' ? -1 : 1;
+      const sortIndexB = sortIndexA - sortIndexA * 2; // inverse of sortIndexA
 
       const trials = Object.values(trialsById).sort((a, b) => {
         return a[orderBy] < b[orderBy] ? sortIndexA : sortIndexB;
@@ -140,7 +154,7 @@ class DbHelper {
   normalizeTrial(trial) {
     const result = {};
 
-    Object.entries(trial).forEach((e) => {
+    Object.entries(trial).forEach(e => {
       result[e[0]] = Object.values(trial[e[0]])[0];
     });
 
@@ -245,12 +259,11 @@ class DbHelper {
   async deleteTrials(trialIds) {
     const params = {
       RequestItems: {
-        [TABLE_TRIALS]:
-          trialIds.map(trialId => ({
-            DeleteRequest: {
-              Key: { id: { S: trialId } },
-            }
-          }))
+        [TABLE_TRIALS]: trialIds.map(trialId => ({
+          DeleteRequest: {
+            Key: { id: { S: trialId } },
+          },
+        })),
       },
     };
 
@@ -277,7 +290,7 @@ class DbHelper {
         items.Items.forEach(searchQuery => {
           const result = {};
 
-          Object.entries(searchQuery).forEach((e) => {
+          Object.entries(searchQuery).forEach(e => {
             if (!attributesToGet.includes(e[0])) return;
 
             result[e[0]] = Object.values(searchQuery[e[0]])[0];
@@ -298,7 +311,6 @@ class DbHelper {
 
     return searchQueries;
   }
-
 
   /**
    * Insert a new search query into the trialsearches table.
@@ -321,18 +333,17 @@ class DbHelper {
    * @param {Array} List of trial search Ids
    */
   async deleteSearchQueries(trialSearchIds) {
-      const params = {
-        RequestItems: {
-          [TABLE_SEARCHES]:
-          trialSearchIds.map(id => ({
-              DeleteRequest: {
-                Key: { id: { S: id } } ,
-              }
-            }))
-        },
-      };
+    const params = {
+      RequestItems: {
+        [TABLE_SEARCHES]: trialSearchIds.map(id => ({
+          DeleteRequest: {
+            Key: { id: { S: id } },
+          },
+        })),
+      },
+    };
 
-      return this.batchWriteItem(params);
+    return this.batchWriteItem(params);
   }
 
   /**
@@ -344,4 +355,4 @@ class DbHelper {
   }
 }
 
-module.exports = DbHelper;
+module.exports = DynamoDbHelper;

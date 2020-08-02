@@ -1,16 +1,20 @@
-const DbHelper = require('./DbHelper');
+const DbHelper = require('./helpers/Db');
 const ClinicalTrialsApi = require('./ClinicalTrialsApi');
 const { logger } = require('../src/lib/logger');
 
 class TrialUpdater {
   async updateTrial(trialId) {
     const db = new DbHelper();
+    await db.connect();
     const api = new ClinicalTrialsApi();
 
     // Fetch the full version of the updated trial from ClinicalTrials.gov
     const newTrial = await api.fetchTrial(trialId);
-    if (!newTrial || !newTrial.Study) return false;
+    if (!newTrial || !newTrial.Study) {
+      await db.disconnect();
 
+      return false;
+    }
     const attributesToUpdate = this.extractAttributes(newTrial);
     attributesToUpdate.trial = newTrial;
 
@@ -20,7 +24,11 @@ class TrialUpdater {
     }
 
     // Update the record in the DB & return result.
-    return await db.updateTrial(trialId, attributesToUpdate);
+    const result = await db.updateTrial(trialId, attributesToUpdate);
+
+    await db.disconnect();
+
+    return result;
   }
 
   /**

@@ -40,6 +40,7 @@ provider:
     SEARCHES_TABLE: 'trialsearches_${self:provider.stage}'
     EMAIL_FROM_ADDRESS: ${self:custom.secrets.EMAIL_FROM_ADDRESS}
     EMAIL_TO_ADDRESS: ${self:custom.secrets.EMAIL_TO_ADDRESS}
+    MONGO_ENDPOINT_URI: ${self:custom.secrets_${self:provider.stage}.MONGO_ENDPOINT_URI}
 
 plugins:
   - serverless-offline
@@ -76,7 +77,7 @@ functions:
     handler: src/functions/updatesNotifier.handle
     onError: arn:aws:sns:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:trialmonitor-lambda-dlq
 
-# trial API functions
+  # trial API functions
   fetchTrial:
     handler: src/functions/api/trials.get
     timeout: 10
@@ -104,6 +105,14 @@ functions:
           path: trials
           method: post
           cors: true
+  updateTrial:
+    handler: src/functions/api/trials.updateTrial
+    timeout: 30
+    events:
+      - http:
+          path: trials/{id}
+          method: PUT
+          cors: true
   deleteTrial:
     handler: src/functions/api/trials.deleteTrial
     timeout: 30
@@ -113,7 +122,7 @@ functions:
           method: delete
           cors: true
 
-# trial searches API functions
+  # trial searches API functions
   listTrialSearches:
     handler: src/functions/api/trialSearches.getAll
     timeout: 10
@@ -162,8 +171,7 @@ stepFunctions:
           notifyIfNecessary:
             Type: Choice
             Choices:
-             -
-                Variable: $.results_length
+              - Variable: $.results_length
                 NumericEquals: 0
                 Next: SucceedState
             Default: prepareResultsForNotifier
@@ -196,8 +204,7 @@ stepFunctions:
           checkIfTrialsNeedToBeUpdated:
             Type: Choice
             Choices:
-             -
-                Variable: $.results_length
+              - Variable: $.results_length
                 NumericEquals: 0
                 Next: SucceedState
             Default: updateTrial
@@ -266,6 +273,8 @@ resources: # CloudFormation template syntax
 
 custom:
   secrets: ${file(secrets.json)}
+  secrets_prod: ${file(secrets.json)}
+  secrets_dev: ${file(secrets_dev.json)}
   stepFunctionsOffline:
     runOutdatedTrialsChecker: outdatedTrialsChecker
     updateTrial: trialUpdater

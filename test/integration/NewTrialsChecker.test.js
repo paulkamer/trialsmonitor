@@ -1,30 +1,35 @@
-require('dotenv').config({path: `${__dirname}/../../.env.test`});
+require('dotenv').config({ path: `${__dirname}/../../test.env` });
 
 const sinon = require('sinon');
 const expect = require('chai').expect;
-const { spawnSync } = require( 'child_process' );
+const { seedDb } = require('./dbHelper');
+const DbHelper = require('../../src/helpers/Db');
 
 const NewTrialsChecker = require('../../src/NewTrialsChecker');
 const ClinicalTrialsApi = require('../../src/ClinicalTrialsApi');
-const DbHelper = require('../../src/DbHelper');
 
-describe('NewTrialsChecker', () => {
+describe('NewTrialsChecker', async () => {
+  let dbHelper;
+  let checker;
+
   // (re-)seed the local DB
-  beforeEach(() =>{
-    spawnSync( '/usr/bin/serverless', [ 'dynamodb', 'seed' ] );
+  beforeEach(async () => {
+    await seedDb();
+
+    dbHelper = new DbHelper();
+    await dbHelper.connect();
+
+    checker = new NewTrialsChecker(dbHelper);
   });
 
-  const searcher = new NewTrialsChecker();
+  afterEach(async () => {
+    await dbHelper.disconnect();
+  });
 
   context('findAndAddNewTrials', async () => {
     let ClinicalTrialsApiStub;
-    let dbHelper;
 
-    const apiResponse1 = [
-      { NCTId: ['nct001'] },
-      { NCTId: ['nct002'] },
-      { NCTId: ['NCT02914535'] },
-    ];
+    const apiResponse1 = [{ NCTId: ['nct001'] }, { NCTId: ['nct002'] }, { NCTId: ['NCT02914535'] }];
 
     const apiResponse2 = [
       { NCTId: ['nct002'] },
@@ -34,15 +39,13 @@ describe('NewTrialsChecker', () => {
 
     // Stub the ClinicalTrials.gov API, so there is no external dependency
     before(() => {
-      dbHelper = new DbHelper();
-
       ClinicalTrialsApiStub = sinon.stub(ClinicalTrialsApi.prototype, 'findTrials');
       ClinicalTrialsApiStub.onCall(0).returns(apiResponse1);
       ClinicalTrialsApiStub.onCall(1).returns(apiResponse2);
     });
 
     it('Successfully finds and adds new trials', async () => {
-      const result = await searcher.findAndAddNewTrials();
+      const result = await checker.findAndAddNewTrials();
 
       expect(result.results).to.have.lengthOf(2);
       expect(result.results_length).to.eql(2);
@@ -50,15 +53,12 @@ describe('NewTrialsChecker', () => {
 
     after(() => {
       ClinicalTrialsApiStub.restore();
-
-      // Delete added trials again to 'reset' the DB
-      dbHelper.deleteTrials(['nct001', 'nct002']);
     });
   });
 
   context('fetchSearchQueries', () => {
     it('Successfully lists search queries', async () => {
-      const result = await searcher.fetchSearchQueries();
+      const result = await checker.fetchSearchQueries();
 
       expect(result).to.have.lengthOf.at.least(2); // see db/seeds/dev/searches.json
     });

@@ -1,4 +1,4 @@
-const DbHelper = require('../../DbHelper');
+const DbHelper = require('../../helpers/Db');
 const { logger } = require('../../lib/logger');
 
 /**
@@ -20,7 +20,7 @@ const getAll = async () => {
  *
  * @param {*} event
  */
-const createTrialSearch = async (event) => {
+const createTrialSearch = async event => {
   logger.info('trialSearches#create');
 
   let searchQuery;
@@ -36,13 +36,19 @@ const createTrialSearch = async (event) => {
     }
   } catch (e) {
     logger.error(e);
+    return formatResponse([]);
   }
   logger.debug(`trialSearches#create - searchQuery: ${searchQuery}`);
 
-  const insertResult = await new DbHelper().insertSearchQuery(searchQuery);
+  const db = new DbHelper();
+  await db.connect();
+
+  const insertResult = await db.insertSearchQuery(searchQuery);
 
   const results = [];
-  if(insertResult) results.push(searchQuery);
+  if (insertResult) results.push(searchQuery);
+
+  db.disconnect();
 
   return formatResponse(results);
 };
@@ -51,7 +57,7 @@ const createTrialSearch = async (event) => {
  * Delete a trial search record from the DB
  * @param {*} event
  */
-const deleteTrialSearch = async (event) => {
+const deleteTrialSearch = async event => {
   logger.info('trialSearches#deleteTrialSearch');
 
   const id = event.pathParameters.id;
@@ -61,7 +67,11 @@ const deleteTrialSearch = async (event) => {
     return formatResponse();
   }
 
-  const deleteResult = await new DbHelper().deleteSearchQuery(id);
+  const db = new DbHelper();
+  await db.connect();
+
+  const deleteResult = await db.deleteSearchQuery(id);
+  db.disconnect();
 
   const results = [];
   if (deleteResult) results.push(id);
@@ -74,8 +84,12 @@ const deleteTrialSearch = async (event) => {
  */
 async function fetchAllSearches() {
   const db = new DbHelper();
+  await db.connect();
 
-  return await db.listSearchQueries();
+  const searches = await db.listSearchQueries();
+  db.disconnect();
+
+  return searches;
 }
 
 /**

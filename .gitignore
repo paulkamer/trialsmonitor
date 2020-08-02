@@ -8,4 +8,5 @@ jspm_packages
 *.code-workspace
 .dynamodb
 secrets.json
+secrets_dev.json
 .eslintcache

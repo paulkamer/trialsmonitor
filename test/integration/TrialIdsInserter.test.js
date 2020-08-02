@@ -1,25 +1,29 @@
-require('dotenv').config({path: `${__dirname}/../../.env.test`});
-
 const expect = require('chai').expect;
-const { spawnSync } = require( 'child_process' );
 
-const DbHelper = require('../../src/DbHelper');
+require('dotenv').config({ path: `${__dirname}/../../test.env` });
+const { seedDb } = require('./dbHelper');
+
+const DbHelper = require('../../src/helpers/Db');
 const TrialIdsInserter = require('../../src/TrialIdsInserter');
 
 describe('TrialIdsInserter', () => {
   // (re-)seed the local DB
-  beforeEach(() =>{
-    spawnSync( '/usr/bin/serverless', [ 'dynamodb', 'seed' ] );
+  beforeEach(async () => {
+    await seedDb();
   });
 
-  const testTrialIds = ['NCT_TEST_001','NCT_TEST_002','NCT_TEST_003'];
+  const testTrialIds = ['NCT_TEST_001', 'NCT_TEST_002', 'NCT_TEST_003'];
 
   let dbHelper;
   let updater;
-
   context('insertTrials', () => {
-    before(() => {
+    before(async () => {
       dbHelper = new DbHelper();
+      await dbHelper.connect();
+    });
+
+    after(async () => {
+      await dbHelper.disconnect();
     });
 
     it('Successfully updates a trial', async () => {
@@ -28,14 +32,13 @@ describe('TrialIdsInserter', () => {
 
       expect(result).to.eql([true, true, true]);
 
-      const trials = await dbHelper.fetchTrials(testTrialIds, ['id', 'lastUpdated']);
-      expect(trials.map((t) => t.id.S)).to.include.members(testTrialIds);
-      expect(trials[0].lastUpdated.N, 'lastUpdated should be initialized with 0').to.eq('0');
-    });
+      const trials = await dbHelper.listTrials();
 
-    after(() => {
-      // Delete inserted trial IDs again
-      dbHelper.deleteTrials(testTrialIds);
+      expect(trials.map(t => t.trialId)).to.include.members(testTrialIds);
+      expect(
+        trials.find(t => t.trialId === testTrialIds[0]).lastUpdated,
+        'lastUpdated should be initialized with 0'
+      ).to.eq(0);
     });
   });
 });
