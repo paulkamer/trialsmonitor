@@ -54,7 +54,7 @@ const getAll = async event => {
   const db = new DbHelper();
   await db.connect();
 
-  const trials = await db.listTrials(['trialId', 'title', 'lastUpdated', 'phase'], {
+  const trials = await db.listTrials(['trialId', 'title', 'lastUpdated', 'phase', 'acronym'], {
     orderBy: 'lastUpdated',
     sortDirection: 'desc',
     limit,
