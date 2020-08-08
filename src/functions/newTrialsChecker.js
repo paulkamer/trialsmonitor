@@ -9,12 +9,16 @@ const DbHelper = require('../helpers/Db');
  */
 const handle = async () => {
   const db = new DbHelper();
-  await db.connect();
 
-  const searcher = new NewTrialsChecker(db);
-  const result = await searcher.findAndAddNewTrials();
+  let result;
+  try {
+    await db.connect();
+    const newTrialsChecker = new NewTrialsChecker(db);
 
-  db.disconnect();
+    result = await newTrialsChecker.findAndAddNewTrials();
+  } finally {
+    db.disconnect();
+  }
 
   logger.debug('NewTrialsChecker result', result);
 

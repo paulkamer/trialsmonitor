@@ -1,4 +1,5 @@
 const UpdatesNotifier = require('../UpdatesNotifier');
+const DbHelper = require('../helpers/Db');
 const { logger } = require('../lib/logger');
 
 /**
@@ -9,9 +10,18 @@ const { logger } = require('../lib/logger');
 const handle = async trialIds => {
   logger.debug('[functionUpdatesNotifier.handle] event:', JSON.stringify(trialIds, null, 2));
 
-  const notifier = new UpdatesNotifier(trialIds);
+  const db = new DbHelper();
 
-  return await notifier.notify();
+  try {
+    await db.connect();
+    const notifier = new UpdatesNotifier(db, trialIds);
+
+    await notifier.notify();
+  } finally {
+    db.disconnect();
+  }
+
+  return true;
 };
 
 module.exports = { handle };

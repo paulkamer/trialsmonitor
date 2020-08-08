@@ -26,10 +26,6 @@ describe('TrialUpdater', () => {
     },
   };
 
-  // Trials for testing TrialUpdater/determineDiff()
-  const trial1 = { Title: 'Trial title', Acronym: 'Trial001' };
-  const trial2 = { Title: 'New trial title', Acronym: 'Trial001' };
-
   let updater;
   let ClinicalTrialsApiStub;
 

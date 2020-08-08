@@ -10,8 +10,13 @@ class MongoDbHelper {
    * Initialize the DB connection
    */
   constructor() {
-    const uri = config.mongdodbEndpointUri;
-    this.client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+    this.client = new MongoClient(config.mongdodbEndpointUri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      keepAlive: false,
+      connectTimeoutMS: 5000,
+      socketTimeoutMS: 3000,
+    });
   }
 
   async connect() {
@@ -56,7 +61,7 @@ class MongoDbHelper {
     return await collection
       .find({}, { projection })
       .sort({ [orderBy]: sortDirection === 'desc' ? -1 : 1 })
-      .limit(limit || 50)
+      .limit(limit || 250)
       .toArray();
   }
 
@@ -74,7 +79,7 @@ class MongoDbHelper {
   async fetchTrial(trialId) {
     const collection = this.db.collection(config.mongodbTrialsCollection);
 
-    return await collection.findOne({ _id: new ObjectId(trialId) });
+    return await collection.findOne({ trialId });
   }
 
   /**
@@ -108,6 +113,35 @@ class MongoDbHelper {
       )
       .toArray();
   }
+  /**
+   * Fetch trial records by id
+   * @param {Array} List of trialIds
+   * @param {Array} List of attribute names to return
+   */
+  async fetchTrialsByTrialId(trialIds, attributesToReturn) {
+    const collection = this.db.collection(config.mongodbTrialsCollection);
+
+    const projection = attributesToReturn.reduce(
+      (acc, cur) => {
+        acc[cur] = 1;
+        return acc;
+      },
+      { _id: 1 }
+    );
+
+    return await collection
+      .find(
+        {
+          trialId: {
+            $in: trialIds,
+          },
+        },
+        {
+          projection,
+        }
+      )
+      .toArray();
+  }
 
   /**
    * Update a Trial document
@@ -119,7 +153,7 @@ class MongoDbHelper {
     const collection = this.db.collection(config.mongodbTrialsCollection);
 
     const updateResult = await collection.updateOne(
-      { _id: new ObjectId(trialId) },
+      { trialId },
       {
         $set: args[0],
       }

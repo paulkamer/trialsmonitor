@@ -18,8 +18,13 @@ const get = async event => {
     const db = new DbHelper();
     await db.connect();
 
-    const trial = await db.fetchTrial(trialId);
-    db.disconnect();
+    let trial;
+
+    try {
+      trial = await db.fetchTrial(trialId);
+    } finally {
+      db.disconnect();
+    }
 
     if (trial) results.push(db.normalizeTrial(trial));
   }
@@ -81,13 +86,21 @@ const createTrial = async event => {
     logger.error(e);
   }
 
+  const db = new DbHelper();
+
   let results = [];
-  if (trialIds.length === 0) {
-    logger.debug('[functionInsertTrial] No trial IDs received');
-  } else {
-    // Insert the trial IDs
-    const inserter = new TrialIdsInserter();
-    results = await inserter.insertTrials(trialIds);
+  try {
+    await db.connect();
+
+    if (trialIds.length === 0) {
+      logger.debug('[functionInsertTrial] No trial IDs received');
+    } else {
+      // Insert the trial IDs
+      const inserter = new TrialIdsInserter(db);
+      results = await inserter.insertTrials(trialIds);
+    }
+  } finally {
+    db.disconnect();
   }
 
   // Format & send response
@@ -146,10 +159,14 @@ const deleteTrial = async event => {
   let results = 0;
   if (trialId) {
     const db = new DbHelper();
-    await db.connect();
 
-    results = await db.deleteTrials([trialId]);
-    db.disconnect();
+    try {
+      await db.connect();
+
+      results = await db.deleteTrials([trialId]);
+    } finally {
+      db.disconnect();
+    }
   }
 
   // Format & send response

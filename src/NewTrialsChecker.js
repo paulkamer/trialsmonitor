@@ -17,7 +17,7 @@ class NewTrialsChecker {
     this.db = db;
 
     this.clinicalTrialsApi = new ClinicalTrialsApi();
-    this.trialIdsInserter = new TrialIdsInserter();
+    this.trialIdsInserter = new TrialIdsInserter(db);
   }
 
   async findAndAddNewTrials() {

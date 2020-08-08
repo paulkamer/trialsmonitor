@@ -13,7 +13,7 @@ describe('TrialUpdater', () => {
     await seedDb();
   });
 
-  const testTrialId = 'bbbbbbbbbbbbbbbbbbbbbbbb';
+  const testTrialId = 'NCT01023321';
 
   const testTrial = {
     Study: {

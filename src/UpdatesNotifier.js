@@ -1,7 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const aws = require('aws-sdk');
 
-const DbHelper = require('./helpers/Db');
 const { logger } = require('../src/lib/logger');
 
 const LINE_END_TXT = '\n';
@@ -15,7 +14,8 @@ const CLINICALTRIALS_HISTORY_BASE_URL = `${CLINICALTRIALS_BASE_URL}/history`;
  *
  */
 class UpdatesNotifier {
-  constructor(trialIds) {
+  constructor(db, trialIds) {
+    this.db = db;
     this.trialIds = trialIds;
   }
 
@@ -40,11 +40,8 @@ class UpdatesNotifier {
   }
 
   async fetchTrials() {
-    const db = new DbHelper();
-    await db.connect();
-
     const fetchAttributes = [
-      'id',
+      'trialId',
       'title',
       'acronym',
       'phase',
@@ -53,11 +50,7 @@ class UpdatesNotifier {
       'diff',
     ];
 
-    const trials = await db.fetchTrials(this.trialIds, fetchAttributes);
-
-    await db.disconnect();
-
-    return trials;
+    return await this.db.fetchTrialsByTrialId(this.trialIds, fetchAttributes);
   }
 
   async prepareEmailParameters(trials) {
@@ -106,13 +99,13 @@ class UpdatesNotifier {
       if (lineEnd === LINE_END_TXT) {
         return [
           `${title} ${phase} - ${studyStatus}`,
-          `${CLINICALTRIALS_SHOW_BASE_URL}/${trial.id} | ${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.id}`,
+          `${CLINICALTRIALS_SHOW_BASE_URL}/${trial.trialId} | ${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.trialId}`,
         ].join(lineEnd);
       }
 
       return [
         title,
-        `${trial.id} <a href="${CLINICALTRIALS_SHOW_BASE_URL}/${trial.id}" target="_blank">ClinicalTrials.gov record</a> (<a href="${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.id}" target="_blank">history</a>) - ${phase} - ${studyStatus}`,
+        `${trial.trialId} <a href="${CLINICALTRIALS_SHOW_BASE_URL}/${trial.trialId}" target="_blank">ClinicalTrials.gov record</a> (<a href="${CLINICALTRIALS_HISTORY_BASE_URL}/${trial.trialId}" target="_blank">history</a>) - ${phase} - ${studyStatus}`,
       ].join(lineEnd);
     });
   }

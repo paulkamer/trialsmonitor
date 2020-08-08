@@ -1,4 +1,3 @@
-const DynamoDbHelper = require('./DynamoDb');
 const MongoDbHelper = require('./MongoDb');
 const { dbType } = require('../../config');
 
@@ -9,7 +8,7 @@ switch (dbType) {
     break;
   }
   default: {
-    dbHelper = DynamoDbHelper;
+    throw new Error(`Unsupported dbType: ${dbType}`);
   }
 }
 

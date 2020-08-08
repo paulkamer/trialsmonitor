@@ -41,14 +41,17 @@ const createTrialSearch = async event => {
   logger.debug(`trialSearches#create - searchQuery: ${searchQuery}`);
 
   const db = new DbHelper();
-  await db.connect();
 
-  const insertResult = await db.insertSearchQuery(searchQuery);
+  let insertResult;
+  try {
+    await db.connect();
+    insertResult = await db.insertSearchQuery(searchQuery);
+  } finally {
+    db.disconnect();
+  }
 
   const results = [];
   if (insertResult) results.push(searchQuery);
-
-  db.disconnect();
 
   return formatResponse(results);
 };
@@ -68,10 +71,14 @@ const deleteTrialSearch = async event => {
   }
 
   const db = new DbHelper();
-  await db.connect();
 
-  const deleteResult = await db.deleteSearchQuery(id);
-  db.disconnect();
+  let deleteResult;
+  try {
+    await db.connect();
+    deleteResult = await db.deleteSearchQuery(id);
+  } finally {
+    db.disconnect();
+  }
 
   const results = [];
   if (deleteResult) results.push(id);
@@ -84,10 +91,14 @@ const deleteTrialSearch = async event => {
  */
 async function fetchAllSearches() {
   const db = new DbHelper();
-  await db.connect();
 
-  const searches = await db.listSearchQueries();
-  db.disconnect();
+  let searches;
+  try {
+    await db.connect();
+    searches = await db.listSearchQueries();
+  } finally {
+    db.disconnect();
+  }
 
   return searches;
 }

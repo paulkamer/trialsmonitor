@@ -26,7 +26,7 @@ class ClinicalTrialsApi {
    */
   async fetchTrial(trialId) {
     const url = `https://www.clinicaltrials.gov/api/query/full_studies?fmt=json&expr=${trialId}`;
-    logger.debug('fetchTrial', url);
+    logger.debug(`fetchTrial ${url}`);
 
     try {
       const res = await fetch(url, { timeout: 3000 });
@@ -55,7 +55,7 @@ class ClinicalTrialsApi {
    */
   async findTrials(expression, fields) {
     const url = `https://www.clinicaltrials.gov/api/query/study_fields?expr=${expression}&fields=${fields}&fmt=JSON&max_rnk=1000`;
-    logger.debug('findTrials', url);
+    logger.debug(`findTrials: ${url}`);
 
     try {
       const res = await fetch(url, { timeout: 5000 });

@@ -27,7 +27,7 @@ describe('TrialIdsInserter', () => {
     });
 
     it('Successfully updates a trial', async () => {
-      updater = new TrialIdsInserter();
+      updater = new TrialIdsInserter(dbHelper);
       const result = await updater.insertTrials(testTrialIds);
 
       expect(result).to.eql([true, true, true]);

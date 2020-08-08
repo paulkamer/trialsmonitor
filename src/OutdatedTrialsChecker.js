@@ -1,26 +1,30 @@
-const DbHelper = require('./helpers/Db');
 const ClinicalTrialsApi = require('./ClinicalTrialsApi');
 const { logger } = require('../src/lib/logger');
 
 class OutdatedTrialsChecker {
+  constructor(db) {
+    this.db = db;
+  }
+
   /**
    * Returns a list of trialIds that are outdated in our DB. i.e. they were updated on
    * ClinicalTrials.gov
    */
   async listOutdatedTrials() {
-    const db = new DbHelper();
-    await db.connect();
-
     const api = new ClinicalTrialsApi();
 
-    // Fetch all trials, grouped by id, with the lastUpdated timestamp from dynamodb
-    const trialsById = await db.listTrials();
-    db.disconnect();
+    // Fetch all trials, grouped by id
+    const trials = await this.db.listTrials();
+
+    const trialsById = trials.reduce((r, t) => {
+      r[t.trialId] = t;
+      return r;
+    }, {});
 
     // Fetch the LastUpdateSubmitDate for all trials
-    const trials = await api.listTrialsForUpdateCheck(Object.keys(trialsById));
+    const trialRecords = await api.listTrialsForUpdateCheck(Object.keys(trialsById));
 
-    return this.determineOutdatedTrials(trialsById, trials);
+    return this.determineOutdatedTrials(trialsById, trialRecords);
   }
 
   /**
@@ -43,7 +47,7 @@ class OutdatedTrialsChecker {
 
         isOutdated = trialsById[trialId].lastUpdated < lastUpdatePosted;
       } catch (e) {
-        logger.error('Failed to determine isOutdated', trial, e);
+        logger.error('Failed to determine isOutdated', e);
       }
 
       if (isOutdated) outdatedTrials.push(trialId);
