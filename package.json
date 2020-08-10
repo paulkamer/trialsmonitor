@@ -13,7 +13,7 @@
     "node": ">=0.12"
   },
   "scripts": {
-    "start:dev": "serverless offline start",
+    "start:dev": "serverless offline start --noPrependStageInUrl",
     "lint": "eslint . --cache",
     "lint:updated": "pipe-git-updated --ext=js -- eslint --cache",
     "prettier-check": "prettier -c --ignore-path .gitignore \"**/*.{css,html,js,json,md,yaml,yml}\"",
@@ -32,7 +32,7 @@
     "json-diff": "^0.5.4",
     "mongodb": "^3.6.0",
     "node-fetch": "^2.6.0",
-    "serverless": "^1.59.3",
+    "serverless": "^1.78.0",
     "uuid": "^7.0.3",
     "winston": "^3.2.1"
   },
@@ -45,7 +45,7 @@
     "mocha": "^7.0.1",
     "mongo-seeding": "^3.4.1",
     "prettier": "^1.19.1",
-    "serverless-offline": "^5.10.1",
+    "serverless-offline": "^6.5.0",
     "serverless-step-functions": "^2.17.0",
     "serverless-step-functions-offline": "^2.1.4",
     "sinon": "^8.1.1"
