@@ -27,7 +27,6 @@ async function seedMongoDb() {
     await seeder.import(collections).catch(err => console.error(err));
   } catch (err) {
     console.error(err);
-    // Handle errors
   }
 }
 

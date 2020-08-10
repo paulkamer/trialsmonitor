@@ -87,37 +87,6 @@ class MongoDbHelper {
    * @param {Array} List of trialIds
    * @param {Array} List of attribute names to return
    */
-  async fetchTrials(trialIds, attributesToReturn) {
-    const collection = this.db.collection(config.mongodbTrialsCollection);
-
-    const idList = trialIds.map(id => new ObjectId(id));
-
-    const projection = attributesToReturn.reduce(
-      (acc, cur) => {
-        acc[cur] = 1;
-        return acc;
-      },
-      { _id: 1 }
-    );
-
-    return await collection
-      .find(
-        {
-          _id: {
-            $in: idList,
-          },
-        },
-        {
-          projection,
-        }
-      )
-      .toArray();
-  }
-  /**
-   * Fetch trial records by id
-   * @param {Array} List of trialIds
-   * @param {Array} List of attribute names to return
-   */
   async fetchTrialsByTrialId(trialIds, attributesToReturn) {
     const collection = this.db.collection(config.mongodbTrialsCollection);
 
