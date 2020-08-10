@@ -48,7 +48,7 @@ const getAll = async event => {
       if (limit <= 0) limit = null;
     }
   } catch (e) {
-    console.error(e);
+    logger.error(e);
   }
 
   const db = new DbHelper();

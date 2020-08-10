@@ -23,7 +23,7 @@ class TrialUpdater {
 
     let currentTrialJson;
     try {
-      currentTrialJson = JSON.parse(currentTrial.trial.S);
+      currentTrialJson = JSON.parse(currentTrial.trial);
     } catch (e) {
       logger.error(e);
     }
@@ -85,6 +85,8 @@ class TrialUpdater {
    * @param {*} newTrial
    */
   determineDiff(currentTrial, newTrial) {
+    if (!currentTrial || currentTrial === {} || !currentTrial.trial) return '';
+
     let diff = '-';
 
     try {

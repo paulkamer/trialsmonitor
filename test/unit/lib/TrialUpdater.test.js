@@ -73,15 +73,23 @@ describe('TrialUpdater', () => {
 
   context('determineDiff', () => {
     // Trials for testing TrialUpdater/determineDiff()
-    const trial1 = { Title: 'Trial title', Acronym: 'Trial001' };
-    const trial2 = { Title: 'New trial title', Acronym: 'Trial001' };
+    const trial1 = { title: 'Trial title', acronym: 'Trial001', trial: {} };
+    const trial2 = { title: 'New trial title', acronym: 'Trial001', trial: {} };
+    const trial3 = {};
 
     it('Determines the diff between 2 version of the trial', () => {
       updater = new TrialUpdater();
       const result = updater.determineDiff(trial1, trial2);
 
       expect(result).to.include('title');
-      expect(result).to.not.include('Acronym');
+      expect(result).to.not.include('acronym');
+    });
+
+    it('doesnt store diff when there is no prev version', () => {
+      updater = new TrialUpdater();
+      const result = updater.determineDiff(trial3, trial2);
+
+      expect(result).to.eql('');
     });
   });
 });
