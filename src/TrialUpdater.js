@@ -1,3 +1,5 @@
+const jsonDiff = require('json-diff');
+
 const DbHelper = require('./helpers/Db');
 const ClinicalTrialsApi = require('./ClinicalTrialsApi');
 const { logger } = require('../src/lib/logger');
@@ -15,8 +17,20 @@ class TrialUpdater {
 
       return false;
     }
+
+    const currentTrial = await db.fetchTrial(trialId);
+    if (!currentTrial) return false;
+
+    let currentTrialJson;
+    try {
+      currentTrialJson = JSON.parse(currentTrial.trial.S);
+    } catch (e) {
+      logger.error(e);
+    }
+
     const attributesToUpdate = this.extractAttributes(newTrial);
     attributesToUpdate.trial = newTrial;
+    attributesToUpdate.diff = this.determineDiff(currentTrialJson, newTrial);
 
     // Rely on last submit date on Trial when available. Otherwise use current date.
     if (!attributesToUpdate.lastUpdated || attributesToUpdate.lastUpdated === '?') {
@@ -61,6 +75,25 @@ class TrialUpdater {
     }
 
     return { title, acronym, phase, studyStatus, lastUpdated };
+  }
+
+  /**
+   * Determine the diff between the current and new version of the trial, using
+   * json-diff
+   *
+   * @param {*} currentTrial
+   * @param {*} newTrial
+   */
+  determineDiff(currentTrial, newTrial) {
+    let diff = '-';
+
+    try {
+      diff = jsonDiff.diffString(currentTrial, newTrial) || '-';
+    } catch (e) {
+      logger.error(e);
+    }
+
+    return diff;
   }
 }
 

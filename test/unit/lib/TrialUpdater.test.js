@@ -70,4 +70,18 @@ describe('TrialUpdater', () => {
       expect(result.studyStatus).to.eq('?');
     });
   });
+
+  context('determineDiff', () => {
+    // Trials for testing TrialUpdater/determineDiff()
+    const trial1 = { Title: 'Trial title', Acronym: 'Trial001' };
+    const trial2 = { Title: 'New trial title', Acronym: 'Trial001' };
+
+    it('Determines the diff between 2 version of the trial', () => {
+      updater = new TrialUpdater();
+      const result = updater.determineDiff(trial1, trial2);
+
+      expect(result).to.include('title');
+      expect(result).to.not.include('Acronym');
+    });
+  });
 });
