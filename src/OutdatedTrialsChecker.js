@@ -1,4 +1,4 @@
-const ClinicalTrialsApi = require('./ClinicalTrialsApi');
+const ClinicalTrialsApi = require('./lib/ClinicalTrialsApi');
 const { logger } = require('../src/lib/logger');
 
 class OutdatedTrialsChecker {

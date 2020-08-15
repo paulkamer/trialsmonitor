@@ -1,4 +1,4 @@
-const ClinicalTrialsApi = require('./ClinicalTrialsApi');
+const ClinicalTrialsApi = require('./lib/ClinicalTrialsApi');
 const TrialIdsInserter = require('./TrialIdsInserter');
 const { logger } = require('../src/lib/logger');
 

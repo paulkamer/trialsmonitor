@@ -1,6 +1,7 @@
 const TrialIdsInserter = require('../../TrialIdsInserter');
 const DbHelper = require('../../helpers/Db');
 const { logger } = require('../../lib/logger');
+const config = require('../../config');
 
 /**
  * Get a single trial
@@ -42,10 +43,16 @@ const getAll = async event => {
   logger.log('info', 'trials.getAll');
 
   let limit = null;
+  let pageNumber = 1;
   try {
     if (event.query && event.query.limit) {
       limit = Number(event.query.limit);
       if (limit <= 0) limit = null;
+    }
+
+    if (event.query && event.query.pageNumber) {
+      pageNumber = Number(event.query.pageNumber);
+      if (pageNumber <= 1) pageNumber = 1;
     }
   } catch (e) {
     logger.error(e);
@@ -58,11 +65,15 @@ const getAll = async event => {
     orderBy: 'lastUpdated',
     sortDirection: 'desc',
     limit,
+    pageNumber,
   });
+
+  const totalTrials = await db.countTrials();
+
   db.disconnect();
 
   // Format & send response
-  return formatResponse(trials);
+  return formatResponse(trials, { totalTrials, limit, pageNumber });
 };
 
 /**
@@ -198,21 +209,24 @@ function extractTrialIdFromEvent(event) {
 /**
  * Format response; determine if/how many failed.
  */
-function formatResponse(results) {
+function formatResponse(results, metadata = {}) {
   let statusCode = 200;
 
   if (results.length === 0) statusCode = 400;
 
+  const body = {
+    results_count: Object.keys(results).length,
+    results: Object.values(results),
+    ...metadata,
+  };
+
   const response = {
     statusCode,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': config.accessControlAllowOrigin,
       'Access-Control-Allow-Credentials': true,
     },
-    body: JSON.stringify({
-      results_count: Object.keys(results).length,
-      results: Object.values(results),
-    }),
+    body: JSON.stringify(body),
   };
 
   return response;

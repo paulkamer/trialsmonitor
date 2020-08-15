@@ -5,7 +5,7 @@ require('dotenv').config({ path: `${__dirname}/../../test.env` });
 const { seedDb } = require('./dbHelper');
 
 const DbHelper = require('../../src/helpers/Db');
-const ClinicalTrialsApi = require('./../../src/ClinicalTrialsApi');
+const ClinicalTrialsApi = require('../../src/lib/ClinicalTrialsApi');
 const TrialUpdater = require('../../src/TrialUpdater');
 
 describe('TrialUpdater', () => {

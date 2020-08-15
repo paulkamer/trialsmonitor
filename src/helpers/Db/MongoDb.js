@@ -48,7 +48,10 @@ class MongoDbHelper {
   /**
    * Returns all trialId's stored in the "trials" table
    */
-  async listTrials(attrs = ['trialId', 'lastUpdated'], { orderBy, sortDirection, limit } = {}) {
+  async listTrials(
+    attrs = ['trialId', 'lastUpdated'],
+    { orderBy, sortDirection, limit, pageNumber } = {}
+  ) {
     const collection = this.db.collection(config.mongodbTrialsCollection);
     const projection = attrs.reduce(
       (acc, cur) => {
@@ -58,11 +61,21 @@ class MongoDbHelper {
       { _id: 1 }
     );
 
+    limit = limit || 250;
+    const skip = (pageNumber - 1) * limit;
+
     return await collection
       .find({}, { projection })
       .sort({ [orderBy]: sortDirection === 'desc' ? -1 : 1 })
-      .limit(limit || 250)
+      .limit(Math.max(limit, 0))
+      .skip(skip)
       .toArray();
+  }
+
+  async countTrials() {
+    const collection = this.db.collection(config.mongodbTrialsCollection);
+
+    return await collection.countDocuments();
   }
 
   /**

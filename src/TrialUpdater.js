@@ -1,7 +1,7 @@
 const jsonDiff = require('json-diff');
 
 const DbHelper = require('./helpers/Db');
-const ClinicalTrialsApi = require('./ClinicalTrialsApi');
+const ClinicalTrialsApi = require('./lib/ClinicalTrialsApi');
 const { logger } = require('../src/lib/logger');
 
 class TrialUpdater {

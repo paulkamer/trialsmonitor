@@ -1,7 +1,7 @@
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-const ClinicalTrialsApi = require('./../../../src/ClinicalTrialsApi');
+const ClinicalTrialsApi = require('../../../src/lib/ClinicalTrialsApi');
 const TrialUpdater = require('../../../src/TrialUpdater');
 
 describe('TrialUpdater', () => {

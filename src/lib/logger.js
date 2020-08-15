@@ -12,9 +12,9 @@ const options = {
     winston.format.splat(),
     winston.format.json()
   ),
-  transports: [consoleTransport]
+  transports: [consoleTransport],
 };
 
-const logger = new winston.createLogger(options);
+const logger = winston.createLogger(options);
 
 module.exports = { logger };

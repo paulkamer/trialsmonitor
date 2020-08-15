@@ -6,7 +6,7 @@ const { seedDb } = require('./dbHelper');
 const DbHelper = require('../../src/helpers/Db');
 
 const NewTrialsChecker = require('../../src/NewTrialsChecker');
-const ClinicalTrialsApi = require('../../src/ClinicalTrialsApi');
+const ClinicalTrialsApi = require('../../src/lib/ClinicalTrialsApi');
 
 describe('NewTrialsChecker', async () => {
   let dbHelper;

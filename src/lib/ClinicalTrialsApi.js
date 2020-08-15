@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const { logger } = require('../src/lib/logger');
+const { logger } = require('./logger');
 
 /**
  * Helper class to fetch data from the ClinicalTrials.gov API
