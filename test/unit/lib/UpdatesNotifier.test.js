@@ -1,7 +1,7 @@
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-const MongoDbHelper = require('../../../src/helpers/Db/MongoDb');
+const MongoDbHelper = require('../../../src/lib/Db/MongoDb');
 const UpdatesNotifier = require('../../../src/UpdatesNotifier');
 
 describe('UpdatesNotifier', () => {

@@ -3,7 +3,7 @@ require('dotenv').config({ path: `${__dirname}/../../test.env` });
 const sinon = require('sinon');
 const expect = require('chai').expect;
 const { seedDb } = require('./dbHelper');
-const DbHelper = require('../../src/helpers/Db');
+const DbHelper = require('../../src/lib/Db');
 
 const NewTrialsChecker = require('../../src/NewTrialsChecker');
 const ClinicalTrialsApi = require('../../src/lib/ClinicalTrialsApi');

@@ -1,7 +1,7 @@
 const NewTrialsChecker = require('../NewTrialsChecker');
 const { logger } = require('../lib/logger');
 
-const DbHelper = require('../helpers/Db');
+const DbHelper = require('../lib/Db');
 
 /**
  * Find new trials, using the stored search queries in the "seaches_<env>"

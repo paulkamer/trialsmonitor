@@ -1,5 +1,5 @@
 const UpdatesNotifier = require('../UpdatesNotifier');
-const DbHelper = require('../helpers/Db');
+const DbHelper = require('../lib/Db');
 const { logger } = require('../lib/logger');
 
 /**

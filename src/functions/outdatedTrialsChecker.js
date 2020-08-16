@@ -1,6 +1,6 @@
 const OutdatedTrialsChecker = require('../OutdatedTrialsChecker');
 const { logger } = require('../lib/logger');
-const DbHelper = require('../helpers/Db');
+const DbHelper = require('../lib/Db');
 
 /**
  * Check for outdated Clinical Trials.

@@ -2,7 +2,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 
 const trialFunction = require('../../../src/functions/api/trials');
-const DbHelper = require('../../../src/helpers/Db');
+const DbHelper = require('../../../src/lib/Db');
 
 describe('deleteTrial', () => {
   let deleteTrialsStub;

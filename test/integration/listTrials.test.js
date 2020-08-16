@@ -5,7 +5,7 @@ const expect = require('chai').expect;
 const { seedDb } = require('./dbHelper');
 
 const trialsFunction = require('../../src/functions/api/trials');
-const DbHelper = require('../../src/helpers/Db');
+const DbHelper = require('../../src/lib/Db');
 
 describe('trialsFunction', async () => {
   // (re-)seed the local DB

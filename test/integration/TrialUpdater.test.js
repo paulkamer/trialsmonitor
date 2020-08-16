@@ -4,7 +4,7 @@ const sinon = require('sinon');
 require('dotenv').config({ path: `${__dirname}/../../test.env` });
 const { seedDb } = require('./dbHelper');
 
-const DbHelper = require('../../src/helpers/Db');
+const DbHelper = require('../../src/lib/Db');
 const ClinicalTrialsApi = require('../../src/lib/ClinicalTrialsApi');
 const TrialUpdater = require('../../src/TrialUpdater');
 

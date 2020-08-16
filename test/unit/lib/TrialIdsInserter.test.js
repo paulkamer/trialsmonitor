@@ -1,7 +1,7 @@
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-const MongoDbHelper = require('../../../src/helpers/Db');
+const MongoDbHelper = require('../../../src/lib/Db');
 const TrialIdsInserter = require('../../../src/TrialIdsInserter');
 
 describe('TrialIdsInserter', () => {

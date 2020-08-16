@@ -3,7 +3,7 @@ const expect = require('chai').expect;
 require('dotenv').config({ path: `${__dirname}/../../test.env` });
 const { seedDb } = require('./dbHelper');
 
-const DbHelper = require('../../src/helpers/Db');
+const DbHelper = require('../../src/lib/Db');
 const TrialIdsInserter = require('../../src/TrialIdsInserter');
 
 describe('TrialIdsInserter', () => {
