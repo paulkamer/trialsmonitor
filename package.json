@@ -13,7 +13,7 @@
     "node": ">=0.12"
   },
   "scripts": {
-    "start:dev": "serverless offline start --noPrependStageInUrl",
+    "start": "serverless offline start --noPrependStageInUrl",
     "lint": "eslint . --cache",
     "lint:updated": "pipe-git-updated --ext=js -- eslint --cache",
     "prettier-check": "prettier -c --ignore-path .gitignore \"**/*.{css,html,js,json,md,yaml,yml}\"",

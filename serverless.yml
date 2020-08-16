@@ -7,19 +7,19 @@ provider:
   runtime: nodejs12.x
   region: eu-central-1
   stage: ${opt:stage,'dev'}
-  cfnRole: 'arn:aws:iam::${self:custom.secrets.ACCOUNT_ID}:role/sls_cfn'
+  cfnRole: "arn:aws:iam::${self:custom.secrets.ACCOUNT_ID}:role/sls_cfn"
   iamRoleStatements:
     - Effect: Allow
       Action:
         - ses:SendEmail
       Resource:
-        - 'arn:aws:ses:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:identity/${self:custom.secrets.EMAIL_TO_ADDRESS}'
-        - 'arn:aws:ses:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:identity/${self:custom.secrets.SES_FROM_IDENTITY}'
+        - "arn:aws:ses:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:identity/${self:custom.secrets.EMAIL_TO_ADDRESS}"
+        - "arn:aws:ses:${self:provider.region}:${self:custom.secrets.ACCOUNT_ID}:identity/${self:custom.secrets.SES_FROM_IDENTITY}"
 
   environment:
     STAGE: ${self:provider.stage}
-    TRIALS_TABLE: 'trials_${self:provider.stage}'
-    SEARCHES_TABLE: 'trialsearches_${self:provider.stage}'
+    TRIALS_TABLE: "trials_${self:provider.stage}"
+    SEARCHES_TABLE: "trialsearches_${self:provider.stage}"
     EMAIL_FROM_ADDRESS: ${self:custom.secrets.EMAIL_FROM_ADDRESS}
     EMAIL_TO_ADDRESS: ${self:custom.secrets.EMAIL_TO_ADDRESS}
     MONGO_ENDPOINT_URI: ${self:custom.secrets_${self:provider.stage}.MONGO_ENDPOINT_URI}
@@ -31,11 +31,10 @@ plugins:
 
 package:
   exclude:
-    - .dynamodb/**
     - yarn.lock
     - package.json
     - README.md
-    - '*.code-workspace'
+    - "*.code-workspace"
     - .eslintcache
     - prettier.config.js
 
@@ -141,7 +140,7 @@ stepFunctions:
   stateMachines:
     newTrialsChecker:
       definition:
-        Comment: 'Check for new trials, based on search queries'
+        Comment: "Check for new trials, based on search queries"
         StartAt: runNewTrialsChecker
         States:
           runNewTrialsChecker:
@@ -174,7 +173,7 @@ stepFunctions:
 
     outdatedTrialsChecker:
       definition:
-        Comment: 'Check for outdated trials'
+        Comment: "Check for outdated trials"
         StartAt: runOutdatedTrialsChecker
         States:
           runOutdatedTrialsChecker:
