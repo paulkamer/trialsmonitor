@@ -5,6 +5,7 @@ import { seedDb } from './dbHelper';
 import db from '../../src/lib/Db';
 
 import * as trialsFunction from '../../src/functions/api/trials';
+import { APIGatewayEvent } from 'aws-lambda';
 
 describe('trialsFunction', async () => {
   beforeEach(async () => {
@@ -13,7 +14,7 @@ describe('trialsFunction', async () => {
 
   describe('getAll', async () => {
     it('Lists the trials that are in the DB', async () => {
-      const response = await trialsFunction.getAll({});
+      const response = await trialsFunction.getAll();
 
       expect(response.statusCode).to.eq(200);
 
@@ -36,7 +37,7 @@ describe('trialsFunction', async () => {
 
         const numberOfTrialsBefore = trialsBefore.length;
 
-        const event = { body: { trialId: testTrialId } };
+        const event: any = { body: JSON.stringify({ trialId: testTrialId }) };
         const expectedResponseBody = JSON.stringify({
           results_count: 1,
           results: [true],

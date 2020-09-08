@@ -1,8 +1,9 @@
 import { expect } from 'chai';
-import sinon from 'sinon';
+import sinon, { SinonStub } from 'sinon';
 
 import ClinicalTrialsApi from '../../../src/lib/ClinicalTrialsApi';
 import TrialUpdater from '../../../src/TrialUpdater';
+import db from '../../../src/lib/Db';
 
 describe('TrialUpdater', () => {
   const testTrialId = 'NCT001';
@@ -27,7 +28,7 @@ describe('TrialUpdater', () => {
   };
 
   let updater;
-  let ClinicalTrialsApiStub;
+  let ClinicalTrialsApiStub: SinonStub;
 
   context('updateTrial', () => {
     before(() => {
@@ -38,7 +39,7 @@ describe('TrialUpdater', () => {
     });
 
     it('Aborts updating when trial cannot be fetched', async () => {
-      updater = new TrialUpdater();
+      updater = new TrialUpdater(db);
       const result = await updater.updateTrial(testTrialId);
 
       expect(result).to.eq(false);
@@ -51,7 +52,7 @@ describe('TrialUpdater', () => {
 
   context('extractAttributes', () => {
     it('Extracts the attributs from the trial object', () => {
-      updater = new TrialUpdater();
+      updater = new TrialUpdater(db);
       const result = updater.extractAttributes(testTrial);
 
       expect(result.title).to.eq('Trial title');
@@ -61,7 +62,7 @@ describe('TrialUpdater', () => {
     });
 
     it('Falls back to question marks when value is missing', () => {
-      updater = new TrialUpdater();
+      updater = new TrialUpdater(db);
       const result = updater.extractAttributes(null);
 
       expect(result.title).to.eq('?');
@@ -78,7 +79,7 @@ describe('TrialUpdater', () => {
     const trial3 = {};
 
     it('Determines the diff between 2 version of the trial', () => {
-      updater = new TrialUpdater();
+      updater = new TrialUpdater(db);
       const result = updater.determineDiff(trial1, trial2);
 
       expect(result).to.include('title');
@@ -86,7 +87,7 @@ describe('TrialUpdater', () => {
     });
 
     it('doesnt store diff when there is no prev version', () => {
-      updater = new TrialUpdater();
+      updater = new TrialUpdater(db);
       const result = updater.determineDiff(trial3, trial2);
 
       expect(result).to.eql('-');

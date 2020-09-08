@@ -1,6 +1,6 @@
 require('dotenv').config({ path: `${__dirname}/../../test.env` });
 
-import sinon from 'sinon';
+import sinon, { SinonStub } from 'sinon';
 import { expect } from 'chai';
 import { seedDb } from './dbHelper';
 import db from '../../src/lib/Db';
@@ -9,7 +9,7 @@ import NewTrialsChecker from '../../src/NewTrialsChecker';
 import ClinicalTrialsApi from '../../src/lib/ClinicalTrialsApi';
 
 describe('NewTrialsChecker', async () => {
-  let checker;
+  let checker: NewTrialsChecker;
 
   // (re-)seed the local DB
   beforeEach(async () => {
@@ -25,15 +25,17 @@ describe('NewTrialsChecker', async () => {
   });
 
   context('findAndAddNewTrials', async () => {
-    let ClinicalTrialsApiStub;
+    let ClinicalTrialsApiStub: SinonStub;
 
-    const apiResponse1 = [{ NCTId: ['nct001'] }, { NCTId: ['nct002'] }, { NCTId: ['NCT02914535'] }];
+    const apiResponse1 = {
+      Expression: 'q1',
+      StudyFields: [{ NCTId: ['nct001'] }, { NCTId: ['nct002'] }, { NCTId: ['NCT02914535'] }],
+    };
 
-    const apiResponse2 = [
-      { NCTId: ['nct002'] },
-      { NCTId: ['NCT01023321'] },
-      { NCTId: ['NCT02914535'] },
-    ];
+    const apiResponse2 = {
+      Expression: 'q2',
+      StudyFields: [{ NCTId: ['nct002'] }, { NCTId: ['NCT01023321'] }, { NCTId: ['NCT02914535'] }],
+    };
 
     // Stub the ClinicalTrials.gov API, so there is no external dependency
     before(() => {
@@ -45,7 +47,7 @@ describe('NewTrialsChecker', async () => {
     it('Successfully finds and adds new trials', async () => {
       const result = await checker.findAndAddNewTrials();
 
-      expect(result.results).to.have.lengthOf(2);
+      expect(result.results || []).to.have.lengthOf(2);
       expect(result.results_length).to.eql(2);
     });
 

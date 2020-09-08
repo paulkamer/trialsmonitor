@@ -28,7 +28,7 @@ class OutdatedTrialsChecker {
     // Fetch the LastUpdateSubmitDate for all trials
     const trialRecords = await api.listTrialsForUpdateCheck(Object.keys(trialsById));
 
-    return this.determineOutdatedTrials(trialsById, trialRecords);
+    return this.determineOutdatedTrials(trialsById, trialRecords?.StudyFields || []);
   }
 
   /**

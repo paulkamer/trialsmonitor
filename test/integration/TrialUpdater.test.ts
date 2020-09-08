@@ -1,12 +1,13 @@
 require('dotenv').config({ path: `${__dirname}/../../test.env` });
 
-import sinon from 'sinon';
+import sinon, { SinonStub } from 'sinon';
 import { expect } from 'chai';
 
 import db from '../../src/lib/Db';
 import { seedDb } from './dbHelper';
 import TrialUpdater from '../../src/TrialUpdater';
 import ClinicalTrialsApi from '../../src/lib/ClinicalTrialsApi';
+import Sinon from 'sinon';
 
 describe('TrialUpdater', () => {
   beforeEach(async () => {
@@ -37,7 +38,7 @@ describe('TrialUpdater', () => {
   };
 
   let updater;
-  let ClinicalTrialsApiStub;
+  let ClinicalTrialsApiStub: SinonStub;
 
   context('updateTrial', () => {
     // Still stub the ClinicalTrials.gov API, so there is no external dependency
@@ -46,31 +47,29 @@ describe('TrialUpdater', () => {
       ClinicalTrialsApiStub.callsFake(() => {
         return Promise.resolve(testTrial);
       });
+      await db.connect();
+    });
+
+    after(async () => {
+      await db.disconnect();
+      ClinicalTrialsApiStub.restore();
     });
 
     it('Successfully updates a trial', async () => {
-      await db.connect();
       const oldTrial = await db.fetchTrial(testTrialId);
-      await db.disconnect();
 
       expect(oldTrial.studyStatus).to.eq('In progress');
       expect(oldTrial.lastUpdated).to.eq(1);
 
-      updater = new TrialUpdater();
+      updater = new TrialUpdater(db);
       const result = await updater.updateTrial(testTrialId);
 
       expect(result).to.eq(true);
 
-      await db.connect();
       const updatedTrial = await db.fetchTrial(testTrialId);
-      await db.disconnect();
 
       expect(updatedTrial?.studyStatus).to.eq('Completed');
       expect(updatedTrial?.lastUpdated).to.eq(1281477600); // unix timestamp of "August 11, 2010"
-    });
-
-    after(async () => {
-      ClinicalTrialsApiStub.restore();
     });
   });
 });

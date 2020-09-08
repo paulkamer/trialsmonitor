@@ -8,11 +8,14 @@ describe('NewTrialsChecker', () => {
 
   context('uniqueNctIds', () => {
     it('Returns a unique list of NCT ids', () => {
-      const ids = ['nct001', 'nct001', 'nct002', 'nct003', 'nct002', 'nct111'];
+      const ids = { searchquery: ['nct001', 'nct001', 'nct002', 'nct003', 'nct002', 'nct111'] };
+      expect(searcher.uniqueNctIds(ids)).to.have.lengthOf(4);
 
-      const result = searcher.uniqueNctIds(ids);
-
-      expect(result).to.have.lengthOf(4);
+      const ids2 = {
+        searchquery: ['nct001', 'nct001', 'nct002'],
+        searchQuery2: ['nct001', 'nct002', 'nct003'],
+      };
+      expect(searcher.uniqueNctIds(ids2)).to.have.lengthOf(3);
     });
   });
 

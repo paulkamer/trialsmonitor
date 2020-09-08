@@ -45,6 +45,10 @@ class MongoDbHelper implements IDbHelper {
     return result.insertedCount === 1;
   }
 
+  async insertTrialIds(trialIds: Array<TrialId>): Promise<boolean[]> {
+    return await Promise.all(trialIds.map((trialId) => this.insertTrialId(trialId)));
+  }
+
   /**
    * Returns all trialId's stored in the "trials" table
    */
@@ -145,12 +149,11 @@ class MongoDbHelper implements IDbHelper {
 
   /**
    * Delete trial records by id
-   * @param {Array} List of trialIds
    */
-  async deleteTrials(trialIds: Array<TrialId>): Promise<number> {
+  async deleteTrials(ids: Array<TrialId>): Promise<number> {
     const collection = this.db.collection(config.mongodbTrialsCollection);
 
-    const idList = trialIds.map((id) => new ObjectId(id));
+    const idList = ids.map((id) => new ObjectId(id));
 
     const result = await collection.deleteMany({
       _id: {

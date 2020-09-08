@@ -2,24 +2,29 @@ import { Trial, ClinicalTrialsTrial, TrialId } from '../types';
 
 import jsonDiff from 'json-diff';
 
-import db from './lib/Db';
 import ClinicalTrialsApi from './lib/ClinicalTrialsApi';
 import logger from '../src/lib/logger';
+import IDbHelper from './lib/Db/IDbHelper';
 
 class TrialUpdater {
+  db: IDbHelper;
+
+  constructor(db: IDbHelper) {
+    this.db = db;
+  }
+
   async updateTrial(trialId: TrialId) {
-    await db.connect();
     const api = new ClinicalTrialsApi();
 
     // Fetch the full version of the updated trial from ClinicalTrials.gov
     const newTrial = await api.fetchTrial(trialId);
     if (!newTrial || !newTrial.Study) {
-      await db.disconnect();
+      await this.db.disconnect();
 
       return false;
     }
 
-    const currentTrial = await db.fetchTrial(trialId);
+    const currentTrial = await this.db.fetchTrial(trialId);
     if (!currentTrial) return false;
 
     let currentTrialJson;
@@ -39,9 +44,7 @@ class TrialUpdater {
     }
 
     // Update the record in the DB & return result.
-    const result = await db.updateTrial(trialId, attributesToUpdate);
-
-    await db.disconnect();
+    const result = await this.db.updateTrial(trialId, attributesToUpdate);
 
     return result;
   }

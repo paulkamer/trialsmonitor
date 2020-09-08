@@ -4,6 +4,7 @@ interface IDbHelper {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
   insertTrialId(trialId: TrialId): Promise<boolean>;
+  insertTrialIds(strialId: TrialId[]): Promise<boolean[]>;
   listTrials(attrs?: TrialId[], options?: object): Promise<Trial[]>;
 
   countTrials(): Promise<number>;

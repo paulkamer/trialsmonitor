@@ -1,98 +1,67 @@
 import { APIGatewayEvent } from 'aws-lambda';
 
-import TrialIdsInserter from '../../TrialIdsInserter';
 import logger from '../../lib/logger';
 import config from '../../config';
 import db from '../../lib/Db';
-import { Trial } from '../../../types';
+import { Trial, TrialId } from '../../../types';
 
 /**
  * Get a single trial
  */
 const get = async (event: APIGatewayEvent) => {
-  logger.log('info', 'trials.get');
+  logger.debug('trials#get');
 
   const trialId = event.pathParameters?.id;
 
   const results: Trial[] = [];
+  if (!trialId) return formatResponse(results);
 
-  if (trialId) {
+  try {
     await db.connect();
-
-    let trial: Trial;
-
-    try {
-      trial = await db.fetchTrial(trialId);
-    } finally {
-      db.disconnect();
-    }
-
+    const trial = await db.fetchTrial(trialId);
     if (trial) results.push(trial);
+  } finally {
+    await db.disconnect();
   }
 
   return formatResponse(results);
 };
 
 /**
- * List trials
- *
- * @todo support requesting specific attributes of trials
- * @param {*} event
+ * Fetch a paginated list of trials
  */
-const getAll = async (event: APIGatewayEvent) => {
-  logger.log('info', 'trials.getAll');
+const getAll = async (event?: APIGatewayEvent) => {
+  logger.debug('trials#getAll');
 
-  let limit: number | null = null;
-  let pageNumber = 1;
+  let trials: Trial[];
+  let totalTrials = 0;
+  const limit = Number(event?.queryStringParameters?.limit) || config.maxTrialsPerPage;
+  const pageNumber = Number(event?.queryStringParameters?.pageNumber) || 1;
+
   try {
-    if (event.queryStringParameters?.limit) {
-      limit = Number(event.queryStringParameters.limit);
-      if (limit <= 0) limit = null;
-    }
+    await db.connect();
+    trials = await db.listTrials(['trialId', 'title', 'lastUpdated', 'phase', 'acronym'], {
+      orderBy: 'lastUpdated',
+      sortDirection: 'desc',
+      limit: Math.min(config.maxTrialsPerPage, Math.max(1, limit)),
+      pageNumber: Math.max(1, pageNumber),
+    });
 
-    if (event.queryStringParameters?.pageNumber) {
-      pageNumber = Number(event.queryStringParameters.pageNumber);
-      if (pageNumber <= 1) pageNumber = 1;
-    }
-  } catch (e) {
-    logger.error(e);
+    totalTrials = await db.countTrials();
+  } finally {
+    await db.disconnect();
   }
 
-  await db.connect();
-
-  const trials = await db.listTrials(['trialId', 'title', 'lastUpdated', 'phase', 'acronym'], {
-    orderBy: 'lastUpdated',
-    sortDirection: 'desc',
-    limit,
-    pageNumber,
-  });
-
-  const totalTrials = await db.countTrials();
-
-  db.disconnect();
-
-  // Format & send response
   return formatResponse(trials, { totalTrials, limit, pageNumber });
 };
 
 /**
  * Insert new trialId(s) to start monitoring them.
- *
- * @param {*} event
  */
 const createTrial = async (event: APIGatewayEvent) => {
-  let trialIds = [];
+  logger.debug('trials#createTrial');
 
-  // Determine the trialIds to insert.
-  try {
-    if (typeof event.body === 'string') {
-      trialIds = JSON.parse(event.body).trialIds || [];
-    } else {
-      throw new Error('Cannot parse event body');
-    }
-  } catch (e) {
-    logger.error(e);
-  }
+  const trialIds: TrialId[] = parseEventBody(event, 'trialIds') || [];
 
   let results: Array<boolean> = [];
   try {
@@ -102,44 +71,38 @@ const createTrial = async (event: APIGatewayEvent) => {
       logger.debug('[functionInsertTrial] No trial IDs received');
     } else {
       // Insert the trial IDs
-      const inserter = new TrialIdsInserter(db);
-      results = await inserter.insertTrials(trialIds);
+      results = await db.insertTrialIds(trialIds);
     }
   } finally {
-    db.disconnect();
+    await db.disconnect();
   }
 
   // Format & send response
   return formatResponse(results);
 };
 
+/**
+ * Update a trial
+ */
 const updateTrial = async (event: APIGatewayEvent) => {
-  let trial: Trial | null = null;
+  logger.debug('trials#updateTrial');
 
   const trialId = event.pathParameters?.id;
-
-  // Determine the trialIds to update.
-  try {
-    if (typeof event.body === 'string') {
-      trial = JSON.parse(event.body).trial;
-    } else {
-      throw new Error('Cannot parse event body');
-    }
-  } catch (e) {
-    logger.error(e);
-  }
+  const trial: Trial | null = parseEventBody(event, 'trial');
 
   const results: Array<boolean> = [];
   if (!trial || !trialId) {
     logger.debug('[functionInsertTrial] No trial IDs received');
-  } else {
-    await db.connect();
+    return formatResponse(results);
+  }
 
+  try {
+    await db.connect();
     const result = await db.updateTrial(trialId, trial);
 
-    db.disconnect();
-
     results.push(result);
+  } finally {
+    await db.disconnect();
   }
 
   // Format & send response
@@ -148,11 +111,11 @@ const updateTrial = async (event: APIGatewayEvent) => {
 
 /**
  * Delete a trial
- *
- * @param {*} event
  */
-const deleteTrial = async (event: APIGatewayEvent) => {
-  const trialId = extractTrialIdFromEvent(event);
+const deleteTrial = async (event?: APIGatewayEvent) => {
+  logger.debug('trials#deleteTrial');
+
+  const trialId: string = parseEventBody(event!, 'trialId');
 
   let results = 0;
   if (trialId) {
@@ -161,7 +124,7 @@ const deleteTrial = async (event: APIGatewayEvent) => {
 
       results = await db.deleteTrials([trialId]);
     } finally {
-      db.disconnect();
+      await db.disconnect();
     }
   }
 
@@ -170,15 +133,12 @@ const deleteTrial = async (event: APIGatewayEvent) => {
 };
 
 /**
- * Extract the trial ID from the event.
- *
- * @param {Object|String} event
+ * Parse the event body as JSON and return the requested attribute
  */
-function extractTrialIdFromEvent(event: APIGatewayEvent) {
-  let trialId;
+function parseEventBody(event: APIGatewayEvent, key: string): any {
   try {
     if (typeof event.body === 'string') {
-      trialId = JSON.parse(event.body).trialId;
+      return JSON.parse(event.body)[key];
     } else {
       throw new Error('Cannot parse event body');
     }
@@ -186,7 +146,7 @@ function extractTrialIdFromEvent(event: APIGatewayEvent) {
     logger.error(e);
   }
 
-  return trialId;
+  return undefined;
 }
 
 /**

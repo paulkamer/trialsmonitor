@@ -1,12 +1,11 @@
-import sinon from 'sinon';
+import sinon, { SinonStub } from 'sinon';
 import { expect } from 'chai';
-import { APIGatewayEvent } from 'aws-lambda';
 
 import * as trialFunction from '../../../src/functions/api/trials';
 import db from '../../../src/lib/Db';
 
 describe('deleteTrial', () => {
-  let deleteTrialsStub;
+  let deleteTrialsStub: SinonStub;
 
   /**
    * Test the function with valid input

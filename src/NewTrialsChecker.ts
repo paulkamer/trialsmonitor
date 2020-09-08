@@ -1,9 +1,9 @@
-import TrialIdsInserter from './TrialIdsInserter';
 import IDbHelper from './lib/Db/IDbHelper';
-import { TrialSearch, ClinicalTrialsTrial } from '../types';
+import { TrialSearch, TrialId } from '../types';
 
 import ClinicalTrialsApi from './lib/ClinicalTrialsApi';
 import logger from '../src/lib/logger';
+import { StudyFieldsResponse } from '../types/StudyFieldsResponse';
 
 /**
  * Find new trials, using stored search queries in the searchqueries_<env> DB table.
@@ -18,28 +18,26 @@ import logger from '../src/lib/logger';
 class NewTrialsChecker {
   db: IDbHelper;
   clinicalTrialsApi: ClinicalTrialsApi;
-  trialIdsInserter: TrialIdsInserter;
 
   constructor(db: IDbHelper) {
     this.db = db;
 
     this.clinicalTrialsApi = new ClinicalTrialsApi();
-    this.trialIdsInserter = new TrialIdsInserter(db);
   }
 
   async findAndAddNewTrials() {
     const searchQueries = await this.fetchSearchQueries();
-    if (!searchQueries.length) return false;
+    if (!searchQueries.length) return {};
 
     // Fetch NCT id's from ClinicalTrials.gov API for the given search queries
-    const allNctIdsForSearchQueries = await this.findNctIdsByQueries(searchQueries);
-    if (!allNctIdsForSearchQueries.length) {
+    const nctIdsByQuery = await this.findNctIdsByQueries(searchQueries);
+    if (!Object.keys(nctIdsByQuery).length) {
       logger.debug('No NCT IDs were found for the search queries');
-      return false;
+      return {};
     }
 
     // Make list of trial IDs unique
-    const allUniqueNctIds = this.uniqueNctIds(allNctIdsForSearchQueries);
+    const allUniqueNctIds = this.uniqueNctIds(nctIdsByQuery);
 
     // Fetch all trials we have
     const trials = await this.db.listTrials();
@@ -52,10 +50,12 @@ class NewTrialsChecker {
     let insertResult;
     if (newNctIds.length) {
       // Insert new trial IDs into our DB
-      insertResult = await this.trialIdsInserter.insertTrials(newNctIds);
+      insertResult = await this.db.insertTrialIds(newNctIds);
     } else {
       logger.debug('No new trials were found');
     }
+
+    // TODO: using nctIdsByQuery, update all trial.searchqueries to add missing search terms
 
     // Only return NCT ids when all new trial IDs were inserted successfully into the DB
     const results = insertResult && insertResult.length === newNctIds.length ? newNctIds : [];
@@ -76,27 +76,34 @@ class NewTrialsChecker {
   /**
    * Fetch all NCTId's for the given search queries from the ClinicalTrials.gov API.
    */
-  async findNctIdsByQueries(searchQueries: TrialSearch[]): Promise<string[]> {
-    let nctIds: string[] = [];
+  async findNctIdsByQueries(searchQueries: TrialSearch[]): Promise<{ [key: string]: TrialId[] }> {
+    const nctIdsByQuery: { [key: string]: TrialId[] } = {};
 
-    const results: ClinicalTrialsTrial[][] = await Promise.all(
+    const results = await Promise.all(
       searchQueries.map(async (searchQuery) => {
-        return await this.clinicalTrialsApi.findTrials(searchQuery.query, 'NCTId');
+        const searchResult = await this.clinicalTrialsApi.findTrials(searchQuery.query, 'NCTId');
+
+        if (searchResult) return searchResult;
       })
     );
 
-    results.forEach((ctt: ClinicalTrialsTrial[]) => {
-      nctIds = nctIds.concat(ctt.map((t) => t.NCTId[0]));
+    results.forEach((r: StudyFieldsResponse | undefined) => {
+      if (r) nctIdsByQuery[r.Expression] = r.StudyFields.map((s) => s.NCTId[0]);
     });
 
-    return nctIds;
+    return nctIdsByQuery;
   }
 
   /**
    * Return unique list of NCTId's
-   * @param {Array} nctIds
    */
-  uniqueNctIds(nctIds: string[]): string[] {
+  uniqueNctIds(nctIdsByQuery: { [key: string]: TrialId[] }): string[] {
+    let nctIds: TrialId[] = [];
+
+    Object.keys(nctIdsByQuery).forEach((k) => {
+      nctIds = nctIds.concat(nctIdsByQuery[k]);
+    });
+
     return [...new Set(nctIds)];
   }
 

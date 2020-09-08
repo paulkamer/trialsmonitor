@@ -6,29 +6,23 @@ import logger from '../../lib/logger';
 
 /**
  * List searches
- *
- * @param {*} event
  */
 const getAll = async () => {
-  logger.info('trialSearches#getAll');
+  logger.debug('trialSearches#getAll');
 
   const searches = await fetchAllSearches();
 
-  // Format & send response
   return formatResponse(searches);
 };
 
 /**
  * Add a new trial search query to the DB
- *
- * @param {*} event
  */
 const createTrialSearch = async (event: APIGatewayEvent) => {
-  logger.info('trialSearches#create');
+  logger.debug('trialSearches#create');
 
   let searchQuery: string;
 
-  // Determine the trialIds to insert.
   try {
     if (typeof event.body === 'string') {
       searchQuery = JSON.parse(event.body).query;
@@ -46,7 +40,7 @@ const createTrialSearch = async (event: APIGatewayEvent) => {
     await db.connect();
     insertResult = await db.insertSearchQuery(searchQuery);
   } finally {
-    db.disconnect();
+    await db.disconnect();
   }
 
   const results: string[] = [];
@@ -57,10 +51,9 @@ const createTrialSearch = async (event: APIGatewayEvent) => {
 
 /**
  * Delete a trial search record from the DB
- * @param {*} event
  */
 const deleteTrialSearch = async (event: APIGatewayEvent) => {
-  logger.info('trialSearches#deleteTrialSearch');
+  logger.debug('trialSearches#deleteTrialSearch');
 
   const id = event.pathParameters?.id;
 
@@ -74,7 +67,7 @@ const deleteTrialSearch = async (event: APIGatewayEvent) => {
     await db.connect();
     deleteResult = await db.deleteSearchQuery(id);
   } finally {
-    db.disconnect();
+    await db.disconnect();
   }
 
   const results: string[] = [];
@@ -92,7 +85,7 @@ async function fetchAllSearches() {
     await db.connect();
     searches = await db.listSearchQueries();
   } finally {
-    db.disconnect();
+    await db.disconnect();
   }
 
   return searches;

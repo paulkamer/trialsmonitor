@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import logger from './logger';
 import { TrialId, ClinicalTrialsTrial } from '../../types';
+import { StudyFieldsResponse } from '../../types/StudyFieldsResponse';
 
 /**
  * Helper class to fetch data from the ClinicalTrials.gov API
@@ -11,8 +12,8 @@ class ClinicalTrialsApi {
    * @param {String[]} nctIds List of NCT (National Clinical Trial) ids
    * @returns Array
    */
-  async listTrialsForUpdateCheck(nctIds: string[]): Promise<Array<ClinicalTrialsTrial>> {
-    if (nctIds.length === 0) return [];
+  async listTrialsForUpdateCheck(nctIds: string[]): Promise<StudyFieldsResponse | null> {
+    if (nctIds.length === 0) return null;
 
     // Fields to return
     const fields = ['NCTId', 'LastUpdateSubmitDate'].join(',');
@@ -51,7 +52,7 @@ class ClinicalTrialsApi {
    * Find trials by a query
    * @todo paginate if NStudiesFound > NStudiesReturned
    */
-  async findTrials(expression: string, fields: string): Promise<Array<ClinicalTrialsTrial>> {
+  async findTrials(expression: string, fields: string): Promise<StudyFieldsResponse | null> {
     const url = `https://www.clinicaltrials.gov/api/query/study_fields?expr=${expression}&fields=${fields}&fmt=JSON&max_rnk=1000`;
     logger.debug(`findTrials: ${url}`);
 
@@ -59,11 +60,11 @@ class ClinicalTrialsApi {
       const res = await fetch(url, { timeout: 5000 });
       const data = await res.json();
 
-      return data.StudyFieldsResponse.StudyFields;
+      return data.StudyFieldsResponse;
     } catch (e) {
       logger.error(e);
 
-      return [];
+      return null;
     }
   }
 }

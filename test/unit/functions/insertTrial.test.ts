@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import sinon from 'sinon';
+import sinon, { SinonStub } from 'sinon';
 
-import TrialIdsInserter from '../../../src/TrialIdsInserter';
+import db from '../../../src/lib/Db';
 import * as trialsFunction from '../../../src/functions/api/trials';
 
 describe('insertTrial', () => {
-  let trialIdsInserterStub;
+  let dbStub: SinonStub;
 
   /**
    * Test the function with valid input
@@ -15,10 +15,11 @@ describe('insertTrial', () => {
     const result = [true, true];
 
     before(() => {
-      trialIdsInserterStub = sinon.stub(TrialIdsInserter.prototype, 'insertTrials');
-      trialIdsInserterStub.callsFake((input) => {
-        expect(input[0]).to.eq(trialIds[0]);
-        expect(input[1]).to.eq(trialIds[1]);
+      dbStub = sinon.stub(db, 'insertTrialIds');
+      dbStub.callsFake((input) => {
+        trialIds.forEach((id, i) => {
+          expect(input[i]).to.eq(id);
+        });
 
         return Promise.resolve(result);
       });
@@ -38,7 +39,7 @@ describe('insertTrial', () => {
     });
 
     after(() => {
-      trialIdsInserterStub.restore();
+      dbStub.restore();
     });
   });
 

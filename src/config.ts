@@ -14,6 +14,8 @@ const config = {
   mongdodbEndpointUri: process.env.MONGO_ENDPOINT_URI || '',
 
   accessControlAllowOrigin: process.env.ACCESS_CONTROL_ALLOW_ORIGIN || '',
+
+  maxTrialsPerPage: 25,
 };
 
 export default config;
